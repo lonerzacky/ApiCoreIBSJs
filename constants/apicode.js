@@ -1,6 +1,7 @@
+// noinspection JSUnresolvedVariable
 module.exports = Object.freeze({
-    apiCodeTransTarikTabungan: '01001',
-    apiCodeInquirySaldo: '01002',
-    apiCodeMutasiTabungan: '01003',
-    apiCodeGetKuitansi: '02001'
+    apiCodeTransTarikTabungan: '101001',
+    apiCodeInquirySaldo: '101002',
+    apiCodeMutasiTabungan: '101003',
+    apiCodeGetKuitansi: '201001'
 });
