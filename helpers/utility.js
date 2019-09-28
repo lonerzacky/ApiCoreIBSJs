@@ -1,0 +1,37 @@
+const moment = require('moment');
+const uuid = require('node-uuid');
+
+module.exports = {
+    /**
+     * @return {string}
+     */
+    GiveResponse: function (response_code, response_message, response_data = "") {
+        return JSON.stringify({
+            response_code,
+            response_message,
+            response_data
+        });
+    },
+    /**
+     * @return {string}
+     */
+    KuitansiClient: function (setting, kode_kantor, number) {
+        let strKuitansi = "";
+        let day = moment().format('DD');
+        let month = moment().format('MM');
+        let year = moment().format('YYYY');
+        if (setting !== '') {
+            strKuitansi = setting;
+            strKuitansi = strKuitansi.replace('###', kode_kantor);
+            strKuitansi = strKuitansi.replace('&&', day);
+            strKuitansi = strKuitansi.replace('@@', month);
+            strKuitansi = strKuitansi.replace('%%', year);
+            strKuitansi = strKuitansi.replace('[99999]', number);
+        }
+        return strKuitansi;
+    },
+    AssignId: function (req, res, next) {
+        req.id = uuid.v4();
+        next()
+    }
+};
