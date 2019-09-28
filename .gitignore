@@ -2350,12 +2350,3 @@ n/node_modules/extend-shallow/LICENSE
 .idea/misc.xml
 .idea/modules.xml
 .idea/vcs.xml
-config/
-constants/
-controllers/
-crud/
-dist/
-helpers/
-server.js
-setter-getter/
-.babelrc
