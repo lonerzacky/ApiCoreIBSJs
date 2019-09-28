@@ -1,0 +1,22 @@
+{
+  "presets": [
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    [
+      "module-resolver",
+      {
+        "root": [
+          "./dist"
+        ],
+        "alias": {
+          "helpers": "../helpers",
+          "config": "../config",
+          "constants": "../constants",
+          "crud": "../crud",
+          "setter-getter": "../setter-getter"
+        }
+      }
+    ]
+  ]
+}
