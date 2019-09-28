@@ -204,6 +204,10 @@ module.exports = {
             resperrParam += 'PARAMETER KODE KANTOR TIDAK ADA\n';
             errParam++;
         }
+        if (params.user_id === '' || !params.user_id) {
+            resperrParam += 'PARAMETER USER ID TIDAK ADA\n';
+            errParam++;
+        }
         // noinspection JSUnresolvedVariable
         if (params.tgl_awal === '' || !params.tgl_awal) {
             resperrParam += 'PARAMETER TGL AWAL TIDAK ADA\n';
