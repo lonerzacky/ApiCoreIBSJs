@@ -2,6 +2,7 @@ const moment = require('moment');
 const pool = require('../config/pooling');
 const poolSys = require('../config/pooling_sys');
 
+// noinspection JSUnresolvedVariable
 module.exports = {
     GetValByKeyValString: function (field, table, key, val) {
         return new Promise(resolve => {
@@ -145,7 +146,7 @@ module.exports = {
             let jamTrans = moment().format("HH:mm:ss");
             let sqlString = `INSERT INTO logservice 
             (tgl_trans, jam_trans, apicode, request, respon, kode_kantor, user_id) VALUES (?,?,?,?,?,?,?)`;
-            connection.query(sqlString, [tglTrans, jamTrans, apicode, JSON.stringify(request),respon,
+            connection.query(sqlString, [tglTrans, jamTrans, apicode, JSON.stringify(request), respon,
                 kode_kantor, user_id], function (err) {
                 if (err) {
                     console.error(err.message);
@@ -153,5 +154,18 @@ module.exports = {
             });
             connection.release();
         });
+    },
+    DeleteTrans: function (table, key, trans_id) {
+        if (trans_id !== 0) {
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'delete from ' + table + ' where ' + key + '= "' + trans_id + '" ';
+                connection.query(sqlString, function (err) {
+                    if (err) {
+                        console.error(err.message);
+                    }
+                });
+                connection.release();
+            });
+        }
     }
 };
