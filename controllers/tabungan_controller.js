@@ -6,6 +6,7 @@ const tabtrans = require('../setter-getter/tabtrans');
 const crudtabung = require('../crud/crudtabung');
 const apicode = require('../constants/apicode');
 
+// noinspection JSUnresolvedVariable
 module.exports = {
     HandlerTransTarikTabungan: async function (req, res) {
         let params = req.body;
@@ -151,6 +152,9 @@ module.exports = {
                             responseBody = utility.GiveResponse("00", "TRANSAKSI TABUNGAN SUKSES", respData);
                         } else {
                             responseBody = utility.GiveResponse("01", "TRANSAKSI TABUNGAN GAGAL");
+                            global_function.DeleteTrans('tabtrans', 'trans_id_source', transId);
+                            global_function.DeleteTrans('transaksi_master', 'trans_id_source', transId);
+                            global_function.DeleteTrans('tabtrans', 'tabtrans_id', transId);
                         }
                     }
                     global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
