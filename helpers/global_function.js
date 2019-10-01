@@ -10,11 +10,11 @@ module.exports = {
             pool.getConnection(function (err, connection) {
                 let sqlString = 'SELECT ' + field + ' FROM ' + table + ' WHERE ' + key + '="' + val + '"';
                 connection.query(sqlString, function (err, rows) {
-                    if (err) {
+                    if (!err && rows.length > 0) {
+                        valReturn = rows[0][field];
+                    } else {
                         valReturn = '';
                         console.log(err.message);
-                    } else {
-                        valReturn = rows[0][field];
                     }
                     resolve(valReturn.toString());
                 });
@@ -28,12 +28,12 @@ module.exports = {
             poolSys.getConnection(function (err, connection) {
                 let sqlString = 'SELECT keyvalue FROM sys_mysysid WHERE keyname="' + key + '"';
                 connection.query(sqlString, function (err, rows) {
-                    if (err) {
-                        valReturn = '';
-                        console.log(err.message);
-                    } else {
+                    if (!err && rows.length > 0) {
                         // noinspection JSUnresolvedVariable
                         valReturn = rows[0].keyvalue;
+                    } else {
+                        valReturn = '';
+                        console.log(err.message);
                     }
                     resolve(valReturn.toString());
                 });
@@ -51,12 +51,12 @@ module.exports = {
             pool.getConnection(function (err, connection) {
                 let sqlString = 'SELECT COUNT( ' + FieldName + ') AS jml FROM ' + Table + ' WHERE ' + Key + ' = "' + Val + '" ' + strValLast;
                 connection.query(sqlString, function (err, rows) {
-                    if (err) {
-                        result = false;
-                        console.log(err.message);
-                    } else {
+                    if (!err && rows.length > 0) {
                         // noinspection JSUnresolvedVariable
                         result = rows[0].jml === 1;
+                    } else {
+                        result = false;
+                        console.log(err.message);
                     }
                     resolve(result);
                 });
@@ -82,11 +82,11 @@ module.exports = {
                             } else {
                                 sqlString = `SELECT MAX(next_id) as trans_id FROM my_id_generator WHERE userid=?`;
                                 connection.query(sqlString, UserId, function (err, rows) {
-                                    if (err) {
+                                    if (!err && rows.length > 0) {
+                                        transId = rows[0].trans_id;
+                                    } else {
                                         transId = 0;
                                         console.log(err.message);
-                                    } else {
-                                        transId = rows[0].trans_id;
                                     }
                                     resolve(transId);
                                 });

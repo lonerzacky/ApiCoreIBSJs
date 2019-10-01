@@ -60,12 +60,12 @@ module.exports = {
                 FROM tabtrans WHERE no_rekening = ? AND tgl_trans<=?`;
                 connection.query(sqlString,
                     [no_rekening, tgl_trans], function (err, rows) {
-                        if (err) {
-                            saldoAkhir = 0;
-                            console.error(`GAGAL GET SALDO AKHIR : ${err.message}`);
-                        } else {
+                        if (!err && rows.length > 0) {
                             saldoAkhir = rows[0].saldo_akhir;
                             resolve(saldoAkhir);
+                        } else {
+                            saldoAkhir = 0;
+                            console.error(`GAGAL GET SALDO AKHIR : ${err.message}`);
                         }
                     });
                 connection.release();

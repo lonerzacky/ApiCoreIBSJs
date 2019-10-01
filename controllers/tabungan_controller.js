@@ -199,11 +199,15 @@ module.exports = {
             connection.release();
         });
     },
-    HandlerInquiryRekening: async function(req,res){
+    HandlerInquiryRekening: async function (req, res) {
         let params = req.body;
         let responseBody = "";
         if (params.no_rekening === '' || !params.no_rekening) {
             return res.send(utility.GiveResponse("01", "NO REKENING HARUS DIISI"));
+        }
+        let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening);
+        if (existNoRekening===''){
+            return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN TIDAK DITEMUKAN"));
         }
         if (params.kode_kantor === '' || !params.kode_kantor) {
             return res.send(utility.GiveResponse("01", "KODE KANTOR HARUS DIISI"));
