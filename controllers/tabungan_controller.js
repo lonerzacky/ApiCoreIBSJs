@@ -197,7 +197,57 @@ module.exports = {
                     return res.send(responseBody);
                 });
             connection.release();
-        })
+        });
+    },
+    HandlerInquiryRekening: async function(req,res){
+        let params = req.body;
+        let responseBody = "";
+        if (params.no_rekening === '' || !params.no_rekening) {
+            return res.send(utility.GiveResponse("01", "NO REKENING HARUS DIISI"));
+        }
+        if (params.kode_kantor === '' || !params.kode_kantor) {
+            return res.send(utility.GiveResponse("01", "KODE KANTOR HARUS DIISI"));
+        }
+        if (params.user_id === '' || !params.user_id) {
+            return res.send(utility.GiveResponse("01", "USER ID HARUS DIISI"));
+        }
+        let saldoAkhir = await crudtabung.GetSaldoAkhirTabungan(params.no_rekening, moment().format('YYYYMMDD'));
+        pool.getConnection(function (err, connection) {
+            let sqlString = `SELECT no_rekening,nama_nasabah,nama_ibu_kandung,alamat,jenis_kelamin,
+            tempatlahir,tgllahir,tabung.tgl_register,no_id,tabung.no_alternatif,
+            tab_produk.kode_produk,tab_produk.deskripsi_produk FROM tabung
+            LEFT JOIN nasabah ON tabung.nasabah_id = nasabah.nasabah_id 
+            LEFT JOIN tab_produk ON tabung.kode_produk = tab_produk.kode_produk
+            WHERE tabung.kode_kantor = ?  AND (
+            tabung.STATUS NOT IN ( 2 )) AND tabung.verifikasi > 0  AND no_rekening = ? LIMIT 1`;
+            connection.query(sqlString,
+                [params.kode_kantor, params.no_rekening], function (err, rows) {
+                    if (err) {
+                        console.error(`SELECT DATA ERROR: ${err.message}`);
+                        responseBody = utility.GiveResponse("01", "INQUIRY REKENING TABUNGAN GAGAL");
+                    } else {
+                        let infoInquiry = {
+                            no_rekening: rows[0].no_rekening,
+                            nama_nasabah: rows[0].nama_nasabah,
+                            nama_ibu_kandung: rows[0].nama_ibu_kandung,
+                            alamat: rows[0].alamat,
+                            jenis_kelamin: rows[0].jenis_kelamin,
+                            tempatlahir: rows[0].tempatlahir,
+                            tgllahir: rows[0].tgllahir,
+                            tgl_register: rows[0].tgl_register,
+                            no_id: rows[0].no_id,
+                            no_alternatif: rows[0].no_alternatif,
+                            kode_produk: rows[0].kode_produk,
+                            deskripsi_produk: rows[0].deskripsi_produk,
+                            saldo_akhir: saldoAkhir.toString()
+                        };
+                        responseBody = utility.GiveResponse("00", "INQUIRY REKENING TABUNGAN SUKSES", infoInquiry);
+                    }
+                    global_function.InsertLogService(apicode.apiCodeInquirySaldo, params, responseBody, params.kode_kantor, params.user_id);
+                    return res.send(responseBody);
+                });
+            connection.release();
+        });
     },
     HandlerMutasiTabungan: async function (req, res) {
         let params = req.body;

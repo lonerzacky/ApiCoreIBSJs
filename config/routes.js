@@ -14,6 +14,8 @@ routes.post('/' + apicode.apiCodeTransTarikTabungan + '', tabungan_controller.Ha
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeInquirySaldo + '', tabungan_controller.HandlerInquirySaldo);
 // noinspection JSUnresolvedFunction
+routes.post('/' + apicode.apiCodeInquiryRekening + '', tabungan_controller.HandlerInquiryRekening);
+// noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeMutasiTabungan + '', tabungan_controller.HandlerMutasiTabungan);
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeGetKuitansi + '', global_controller.HandlerGetKuitansi);
