@@ -65,11 +65,11 @@ module.exports = {
             resperrParam += 'PARAMETER USER ID TIDAK ADA\n';
             errParam++;
         }
-        if (!params.no_rekening_vs) {
-            resperrParam += 'PARAMETER NO REKENING VS TIDAK ADA\n';
-            errParam++;
-        }
         if (params.kode_trans === '204') {
+            if (!params.no_rekening_vs) {
+                resperrParam += 'PARAMETER NO REKENING VS TIDAK ADA\n';
+                errParam++;
+            }
             if (params.no_rekening_vs === '') {
                 return res.send(utility.GiveResponse("00", "NO REK. TUJUAN HARUS TERISI"));
             }
@@ -93,7 +93,14 @@ module.exports = {
             global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
             return res.send(responseBody);
         }
-        if (params.kode_trans === '204') {
+        if (params.kode_trans === '200') {
+            let kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
+            if (kodePerkKas === '') {
+                responseBody = utility.GiveResponse("01", "LOAD KODE KAS, SILAHKAN SETTING PERKIRAAN USER");
+                global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+                return res.send(responseBody);
+            }
+        } else if (params.kode_trans === '204') {
             let kodePerkSimpananVs = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.kode_integrasi_vs);
             if (kodePerkSimpananVs === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN VS GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
@@ -101,6 +108,7 @@ module.exports = {
                 return res.send(responseBody);
             }
         }
+
         if (await global_function.IsKuitansiExist('kuitansi_id', 'tabtrans', 'kuitansi_id', params.kuitansi_id, 'no_rekening', params.no_rekening)) {
             return res.send(utility.GiveResponse("01", "KUITANSI " + params.kuitansi_id + " DUPLIKAT"));
         }
@@ -285,7 +293,7 @@ module.exports = {
             errParam++;
         }
         let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening);
-        if (existNoRekening===''){
+        if (existNoRekening === '') {
             return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN TIDAK DITEMUKAN"));
         }
         if (errParam > 0) {

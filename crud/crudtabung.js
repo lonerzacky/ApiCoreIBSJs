@@ -8,7 +8,7 @@ module.exports = {
     AddTransTarikTabungan: async function (tabtrans) {
         let res = false;
         let transIdVs = 0;
-        if (tabtrans.no_rekening_vs !== '') {
+        if (tabtrans.no_rekening_vs !== '' && tabtrans.kode_trans === '204') {
             transIdVs = await global_function.GenerateTransID(tabtrans.user_id);
             if (transIdVs > 0 && tabtrans.pokok > '0') {
                 pool.getConnection(function (err, connection) {
@@ -34,7 +34,12 @@ module.exports = {
             }
         }
         let kodePerkiraanSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi);
-        let kodePerkiraanSimpananVs = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi_vs);
+        let kodePerkKas = '';
+        if (tabtrans.kode_trans === '200') {
+            kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', tabtrans.user_id);
+        } else if (tabtrans.kode_trans === '204') {
+            kodePerkKas = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi_vs);
+        }
         if (tabtrans.pokok > '0') {
             let transIdMaster = await global_function.GenerateTransID(tabtrans.user_id);
             let transMaster = await global_function.InsertTransaksiMaster(transIdMaster, 'TAB', tabtrans.kuitansi,
@@ -45,7 +50,7 @@ module.exports = {
                 res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanSimpanan,
                     tabtrans.pokok, '0', tabtrans.kode_kantor, tabtrans.keterangan);
                 transIdDetail = await global_function.GenerateTransID(tabtrans.user_id);
-                res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanSimpananVs,
+                res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
                     '0', tabtrans.pokok, tabtrans.kode_kantor, tabtrans.keterangan);
             }
         }

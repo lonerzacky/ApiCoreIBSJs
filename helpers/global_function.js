@@ -21,6 +21,23 @@ module.exports = {
             });
         });
     },
+    GetValByKeyValStringSys: function (field, table, key, val) {
+        return new Promise(resolve => {
+            let valReturn;
+            poolSys.getConnection(function (err, connection) {
+                let sqlString = 'SELECT ' + field + ' FROM ' + table + ' WHERE ' + key + '="' + val + '"';
+                connection.query(sqlString, function (err, rows) {
+                    if (!err && rows.length > 0) {
+                        valReturn = rows[0][field];
+                    } else {
+                        valReturn = '';
+                    }
+                    resolve(valReturn.toString());
+                });
+                connection.release();
+            });
+        });
+    },
     GetSysMySysIdValue: function (key) {
         return new Promise(resolve => {
             let valReturn;
