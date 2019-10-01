@@ -169,6 +169,10 @@ module.exports = {
         if (params.no_rekening === '' || !params.no_rekening) {
             return res.send(utility.GiveResponse("01", "NO REKENING HARUS DIISI"));
         }
+        let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening);
+        if (existNoRekening === '') {
+            return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN TIDAK DITEMUKAN"));
+        }
         if (params.kode_kantor === '' || !params.kode_kantor) {
             return res.send(utility.GiveResponse("01", "KODE KANTOR HARUS DIISI"));
         }
@@ -206,7 +210,7 @@ module.exports = {
             return res.send(utility.GiveResponse("01", "NO REKENING HARUS DIISI"));
         }
         let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening);
-        if (existNoRekening===''){
+        if (existNoRekening === '') {
             return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN TIDAK DITEMUKAN"));
         }
         if (params.kode_kantor === '' || !params.kode_kantor) {
@@ -279,6 +283,10 @@ module.exports = {
         if (params.no_rekening === '' || !params.no_rekening) {
             resperrParam += 'PARAMETER NO REKENING TIDAK ADA\n';
             errParam++;
+        }
+        let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening);
+        if (existNoRekening===''){
+            return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN TIDAK DITEMUKAN"));
         }
         if (errParam > 0) {
             return res.send(utility.GiveResponse("00", resperrParam));

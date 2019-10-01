@@ -14,7 +14,6 @@ module.exports = {
                         valReturn = rows[0][field];
                     } else {
                         valReturn = '';
-                        console.log(err.message);
                     }
                     resolve(valReturn.toString());
                 });
@@ -33,7 +32,6 @@ module.exports = {
                         valReturn = rows[0].keyvalue;
                     } else {
                         valReturn = '';
-                        console.log(err.message);
                     }
                     resolve(valReturn.toString());
                 });
@@ -56,7 +54,6 @@ module.exports = {
                         result = rows[0].jml === 1;
                     } else {
                         result = false;
-                        console.log(err.message);
                     }
                     resolve(result);
                 });
@@ -86,7 +83,6 @@ module.exports = {
                                         transId = rows[0].trans_id;
                                     } else {
                                         transId = 0;
-                                        console.log(err.message);
                                     }
                                     resolve(transId);
                                 });
