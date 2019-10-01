@@ -66,10 +66,6 @@ module.exports = {
             errParam++;
         }
         if (params.kode_trans === '204') {
-            if (!params.no_rekening_vs) {
-                resperrParam += 'PARAMETER NO REKENING VS TIDAK ADA\n';
-                errParam++;
-            }
             if (params.no_rekening_vs === '') {
                 return res.send(utility.GiveResponse("00", "NO REK. TUJUAN HARUS TERISI"));
             }
