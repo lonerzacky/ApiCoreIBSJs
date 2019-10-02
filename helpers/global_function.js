@@ -168,11 +168,11 @@ module.exports = {
             connection.release();
         });
     },
-    GetAccSaldoPerk: function (kode_perk, kode_kantor, tgl, user_id) {
+    GetAccSaldoPerk: function (kode_perk, kode_kantor, tgl, user_id = '') {
         return new Promise(resolve => {
             let saldoPerk;
             let qUserId = '';
-            if (user_id !== '*') {
+            if (user_id !== '') {
                 qUserId = 'AND userid="' + user_id + '"';
             }
             pool.getConnection(function (err, connection) {
@@ -193,6 +193,45 @@ module.exports = {
                         saldoPerk = 0;
                     }
                     resolve(saldoPerk);
+                });
+                connection.release();
+            });
+        });
+    },
+    GetAccSaldoPerkDetail: function (kode_perk, kode_kantor, tgl) {
+        return new Promise(resolve => {
+            let nSaldoAwal = '';
+            let nSaldoPerk = '';
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'select transaksi_master.kode_kantor, perkiraan.kode_perk, perkiraan.id_perk, perkiraan.d_or_k, ' +
+                    'sum(if(tgl_trans<"' + tgl + '",debet,0)) as debet_awal, ' +
+                    'sum(if(tgl_trans<"' + tgl + '",kredit,0)) as kredit_awal,  ' +
+                    'sum(if(tgl_trans>="' + tgl + '" and tgl_trans<="' + tgl + '" and kode_jurnal<>"CLS",debet,0)) as debet_mutasi, ' +
+                    'sum(if(tgl_trans>="' + tgl + '" and tgl_trans<="' + tgl + '" and kode_jurnal<>"CLS",kredit,0)) as kredit_mutasi ' +
+                    'from transaksi_master,transaksi_detail,perkiraan ' +
+                    'where transaksi_master.trans_id=transaksi_detail.master_id ' +
+                    'and transaksi_master.kode_kantor=transaksi_detail.kode_kantor_detail ' +
+                    'and transaksi_detail.kode_perk=perkiraan.kode_perk ' +
+                    'and tgl_trans<="' + tgl + '" and transaksi_master.kode_kantor="' + kode_kantor + '" ' +
+                    'and transaksi_detail.kode_perk="' + kode_perk + '" ';
+                connection.query(sqlString, function (err, rows) {
+                    if (!err && rows.length > 0) {
+                        // noinspection JSUnresolvedVariable
+                        if (rows[0].d_or_k === 'D') {
+                            // noinspection JSUnresolvedVariable
+                            nSaldoAwal = rows[0].debet_awal - rows[0].kredit_awal;
+                            // noinspection JSUnresolvedVariable
+                            nSaldoPerk = nSaldoAwal + rows[0].debet_mutasi - rows[0].kredit_mutasi;
+                        } else {
+                            // noinspection JSUnresolvedVariable
+                            nSaldoAwal = rows[0].kredit_awal - rows[0].debet_awal;
+                            // noinspection JSUnresolvedVariable
+                            nSaldoPerk = nSaldoAwal + rows[0].kredit_mutasi - rows[0].debet_mutasi;
+                        }
+                    } else {
+                        nSaldoPerk = 0;
+                    }
+                    resolve(parseFloat(nSaldoPerk).toFixed(2));
                 });
                 connection.release();
             });

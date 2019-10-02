@@ -76,7 +76,7 @@ module.exports = {
                 return res.send(utility.GiveResponse("01", "KODE PERK KAS USER BELUM TERDEFINISI"));
             } else {
                 let saldoKas = await global_function.GetAccSaldoPerk(kodePerkKas, params.kode_kantor, params.tgl_trans, params.user_id);
-                if (saldoKas < params.pokok) {
+                if (saldoKas < parseFloat(params.pokok)) {
                     return res.send(utility.GiveResponse("01", "SALDO KAS TIDAK MENCUKUPI!"));
                 }
             }
@@ -101,6 +101,15 @@ module.exports = {
                 let existKodePerkOb = await global_function.GetValByKeyValString('kode_perk', 'perkiraan', 'kode_perk', params.kode_perk_ob);
                 if (existKodePerkOb === '') {
                     return res.send(utility.GiveResponse("01", "KODE PERK OB TIDAK DITEMUKAN"));
+                }
+            }
+            if (params.kode_perk_ob.substring(0, 1) === '1' || params.kode_perk_ob.substring(0, 1) === '5') {
+                let saldoPerk = await global_function.GetAccSaldoPerkDetail(params.kode_perk_ob, params.kode_kantor, params.tgl_trans);
+                let flagBlokir = await global_function.GetValByKeyValString('flag_minus', 'perkiraan', 'kode_perk', params.kode_perk_ob);
+                if (flagBlokir !== '1') {
+                    if (saldoPerk < parseFloat(params.pokok)) {
+                        return res.send(utility.GiveResponse("01", "SALDO PERKIRAAN [" + params.kode_perk_ob + "] TIDAK MENCUKUPI!"));
+                    }
                 }
             }
         }
