@@ -1,6 +1,4 @@
 .env
-package-lock.json
-package.json
 .idea
 dist
 node_modules/.bin/
