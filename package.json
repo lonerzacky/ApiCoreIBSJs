@@ -1,0 +1,42 @@
+{
+  "name": "ibsgen2",
+  "version": "1.0.0",
+  "description": "API IbsGen2 Using Express JS",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node dist/server.js",
+    "build": "babel server.js -d dist"
+  },
+  "keywords": [
+    "nodejs",
+    "restful",
+    "fintech",
+    "express",
+    "api",
+    "USSI",
+    "USSIPPS"
+  ],
+  "author": "zackwolf",
+  "license": "ISC",
+  "dependencies": {
+    "app-module-path": "^2.2.0",
+    "async": "^2.6.1",
+    "body-parser": "^1.18.3",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "express-group-routes": "^1.1.0",
+    "moment": "^2.24.0",
+    "morgan": "^1.9.1",
+    "morgan-body": "^2.4.8",
+    "mysql": "^2.17.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.0",
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "babel-plugin-module-resolver": "^3.2.0",
+    "mysql2": "^1.7.0",
+    "node-uuid": "^1.4.8"
+  }
+}
