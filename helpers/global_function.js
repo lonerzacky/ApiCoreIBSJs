@@ -168,6 +168,36 @@ module.exports = {
             connection.release();
         });
     },
+    GetAccSaldoPerk: function (kode_perk, kode_kantor, tgl, user_id) {
+        return new Promise(resolve => {
+            let saldoPerk;
+            let qUserId = '';
+            if (user_id !== '*') {
+                qUserId = 'AND userid="' + user_id + '"';
+            }
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'select transaksi_master.kode_kantor,' +
+                    'sum(if(tgl_trans<="' + tgl + '" and kode_jurnal<>"CLS",transaksi_detail.debet,0)) as debet_mutasi,' +
+                    'sum(if(tgl_trans<="' + tgl + '" and kode_jurnal<>"CLS",transaksi_detail.kredit,0)) as kredit_mutasi ' +
+                    'from transaksi_master,transaksi_detail ' +
+                    'where transaksi_master.trans_id=transaksi_detail.master_id ' +
+                    'and transaksi_master.kode_kantor=transaksi_detail.kode_kantor_detail ' +
+                    'and tgl_trans<="' + tgl + '" and transaksi_master.kode_kantor="' + kode_kantor + '" ' +
+                    'and transaksi_detail.kode_perk="' + kode_perk + '" ' + qUserId + ' ' +
+                    'group by kode_kantor, kode_perk ';
+                connection.query(sqlString, function (err, rows) {
+                    if (!err && rows.length > 0) {
+                        // noinspection JSUnresolvedVariable
+                        saldoPerk = rows[0].debet_mutasi - rows[0].kredit_mutasi;
+                    } else {
+                        saldoPerk = 0;
+                    }
+                    resolve(saldoPerk);
+                });
+                connection.release();
+            });
+        });
+    },
     DeleteTrans: function (table, key, trans_id) {
         if (trans_id !== 0) {
             pool.getConnection(function (err, connection) {

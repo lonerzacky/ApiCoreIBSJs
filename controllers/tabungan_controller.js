@@ -70,6 +70,17 @@ module.exports = {
             resperrParam += 'PARAMETER USER ID TIDAK ADA\n';
             errParam++;
         }
+        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
+            let kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
+            if (kodePerkKas === '') {
+                return res.send(utility.GiveResponse("01", "KODE PERK KAS USER BELUM TERDEFINISI"));
+            } else {
+                let saldoKas = await global_function.GetAccSaldoPerk(kodePerkKas, params.kode_kantor, params.tgl_trans, params.user_id);
+                if (saldoKas < params.pokok) {
+                    return res.send(utility.GiveResponse("01", "SALDO KAS TIDAK MENCUKUPI!"));
+                }
+            }
+        }
         if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             if (params.no_rekening_vs === '') {
                 return res.send(utility.GiveResponse("00", "NO REK. TUJUAN HARUS TERISI"));
