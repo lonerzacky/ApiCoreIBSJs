@@ -1,5 +1,7 @@
 const global_function = require('../helpers/global_function');
 const pool = require('../config/pooling');
+const kodetrans = require('../constants/kodetrans');
+
 
 module.exports = {
     /**
@@ -8,7 +10,7 @@ module.exports = {
     AddTransTarikTabungan: async function (tabtrans) {
         let res = false;
         let transIdVs = 0;
-        if (tabtrans.no_rekening_vs !== '' && tabtrans.kode_trans === '204') {
+        if (tabtrans.no_rekening_vs !== '' && tabtrans.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             transIdVs = await global_function.GenerateTransID(tabtrans.user_id);
             if (transIdVs > 0 && tabtrans.pokok > '0') {
                 pool.getConnection(function (err, connection) {
@@ -35,11 +37,11 @@ module.exports = {
         }
         let kodePerkiraanSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi);
         let kodePerkKas = '';
-        if (tabtrans.kode_trans === '200') {
+        if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
             kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', tabtrans.user_id);
-        } else if (tabtrans.kode_trans === '204') {
+        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             kodePerkKas = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi_vs);
-        } else if (tabtrans.kode_trans === '202') {
+        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
             kodePerkKas = tabtrans.kode_perk_ob;
         }
         if (tabtrans.pokok > '0') {

@@ -5,6 +5,7 @@ const global_function = require('../helpers/global_function');
 const tabtrans = require('../setter-getter/tabtrans');
 const crudtabung = require('../crud/crudtabung');
 const apicode = require('../constants/apicode');
+const kodetrans = require('../constants/kodetrans');
 
 // noinspection JSUnresolvedVariable
 module.exports = {
@@ -69,7 +70,7 @@ module.exports = {
             resperrParam += 'PARAMETER USER ID TIDAK ADA\n';
             errParam++;
         }
-        if (params.kode_trans === '204') {
+        if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             if (params.no_rekening_vs === '') {
                 return res.send(utility.GiveResponse("00", "NO REK. TUJUAN HARUS TERISI"));
             } else {
@@ -82,7 +83,7 @@ module.exports = {
                 return res.send(utility.GiveResponse("00", "KODE INTEGRASI REK. TUJUAN HARUS TERISI"));
             }
         }
-        if (params.kode_trans === '202') {
+        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
             if (params.kode_perk_ob === '') {
                 return res.send(utility.GiveResponse("00", "KODE PERK OB HARUS TERISI"));
             } else {
@@ -108,14 +109,14 @@ module.exports = {
             global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
             return res.send(responseBody);
         }
-        if (params.kode_trans === '200') {
+        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
             let kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
             if (kodePerkKas === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE KAS, SILAHKAN SETTING PERKIRAAN USER");
                 global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
                 return res.send(responseBody);
             }
-        } else if (params.kode_trans === '204') {
+        } else if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             let kodePerkSimpananVs = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.kode_integrasi_vs);
             if (kodePerkSimpananVs === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN VS GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
