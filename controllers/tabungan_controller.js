@@ -17,6 +17,10 @@ module.exports = {
             resperrParam += 'PARAMETER NO REKENING TIDAK ADA\n';
             errParam++;
         }
+        let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening);
+        if (existNoRekening === '') {
+            return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN TIDAK DITEMUKAN"));
+        }
         if (params.kode_kantor === '' || !params.kode_kantor) {
             resperrParam += 'PARAMETER KODE KANTOR TIDAK ADA\n';
             errParam++;
@@ -68,9 +72,24 @@ module.exports = {
         if (params.kode_trans === '204') {
             if (params.no_rekening_vs === '') {
                 return res.send(utility.GiveResponse("00", "NO REK. TUJUAN HARUS TERISI"));
+            } else {
+                let existNoRekeningVs = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening_vs);
+                if (existNoRekeningVs === '') {
+                    return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN VS TIDAK DITEMUKAN"));
+                }
             }
             if (params.kode_integrasi_vs === '') {
                 return res.send(utility.GiveResponse("00", "KODE INTEGRASI REK. TUJUAN HARUS TERISI"));
+            }
+        }
+        if (params.kode_trans === '202') {
+            if (params.kode_perk_ob === '') {
+                return res.send(utility.GiveResponse("00", "KODE PERK OB HARUS TERISI"));
+            } else {
+                let existKodePerkOb = await global_function.GetValByKeyValString('kode_perk', 'perkiraan', 'kode_perk', params.kode_perk_ob);
+                if (existKodePerkOb === '') {
+                    return res.send(utility.GiveResponse("01", "KODE PERK OB TIDAK DITEMUKAN"));
+                }
             }
         }
         if (errParam > 0) {
@@ -150,6 +169,7 @@ module.exports = {
                         tabtrans.verifikasi = params.verifikasi;
                         tabtrans.kode_integrasi = params.kode_integrasi;
                         tabtrans.kode_integrasi_vs = params.kode_integrasi_vs;
+                        tabtrans.kode_perk_ob = params.kode_perk_ob;
                         let result = crudtabung.AddTransTarikTabungan(tabtrans);
                         if (result) {
                             crudtabung.RepostingSaldoTabungan(params.no_rekening, params.tgl_trans);

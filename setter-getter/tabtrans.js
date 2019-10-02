@@ -15,6 +15,7 @@ let tabtrans = {
     _sandi_trans: '',
     _verifikasi: '',
     _kode_integrasi: '',
+    _kode_perk_ob: '',
     set tabtrans_id(tabtrans_id) {
         this._tabtrans_id = tabtrans_id;
     },
@@ -116,6 +117,12 @@ let tabtrans = {
     },
     get kode_integrasi_vs() {
         return this._kode_integrasi_vs;
+    },
+    set kode_perk_ob(kode_perk_ob) {
+        this._kode_perk_ob = kode_perk_ob;
+    },
+    get kode_perk_ob() {
+        return this._kode_perk_ob;
     }
 };
 

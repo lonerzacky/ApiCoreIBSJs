@@ -39,6 +39,8 @@ module.exports = {
             kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', tabtrans.user_id);
         } else if (tabtrans.kode_trans === '204') {
             kodePerkKas = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi_vs);
+        } else if (tabtrans.kode_trans === '202') {
+            kodePerkKas = tabtrans.kode_perk_ob;
         }
         if (tabtrans.pokok > '0') {
             let transIdMaster = await global_function.GenerateTransID(tabtrans.user_id);
