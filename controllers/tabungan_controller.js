@@ -105,8 +105,8 @@ module.exports = {
             }
             if (params.kode_perk_ob.substring(0, 1) === '1' || params.kode_perk_ob.substring(0, 1) === '5') {
                 let saldoPerk = await global_function.GetAccSaldoPerkDetail(params.kode_perk_ob, params.kode_kantor, params.tgl_trans);
-                let flagBlokir = await global_function.GetValByKeyValString('flag_minus', 'perkiraan', 'kode_perk', params.kode_perk_ob);
-                if (flagBlokir !== '1') {
+                let flagMinus = await global_function.GetValByKeyValString('flag_minus', 'perkiraan', 'kode_perk', params.kode_perk_ob);
+                if (flagMinus !== '1') {
                     if (saldoPerk < parseFloat(params.pokok)) {
                         return res.send(utility.GiveResponse("01", "SALDO PERKIRAAN [" + params.kode_perk_ob + "] TIDAK MENCUKUPI!"));
                     }
