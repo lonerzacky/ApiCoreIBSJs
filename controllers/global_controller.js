@@ -64,10 +64,10 @@ module.exports = {
     HandlerLoginApp: async function (req, res) {
         let params = req.body;
         if (!params.username) {
-            return res.send(utility.GiveResponse("01", "PARAMETER USERNAME NULL"));
+            return res.send(utility.GiveResponse("01", "PARAMETER USERNAME KOSONG"));
         }
         if (!params.password) {
-            return res.send(utility.GiveResponse("01", "PARAMETER PASSWORD NULL"));
+            return res.send(utility.GiveResponse("01", "PARAMETER PASSWORD KOSONG"));
         }
 
         poolSys.getConnection(function (err, connection) {
