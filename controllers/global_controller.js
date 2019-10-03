@@ -1,6 +1,7 @@
 const utility = require("../helpers/utility");
 const global_function = require('../helpers/global_function');
 const pool = require('../config/pooling');
+const poolSys = require('../config/pooling_sys');
 const apicode = require('../constants/apicode');
 
 module.exports = {
@@ -59,5 +60,30 @@ module.exports = {
             });
             connection.release();
         });
+    },
+    HandlerLoginApp: async function (req, res) {
+        let params = req.body;
+        if (!params.username) {
+            return res.send(utility.GiveResponse("01", "PARAMETER USERNAME NULL"));
+        }
+        if (!params.password) {
+            return res.send(utility.GiveResponse("01", "PARAMETER PASSWORD NULL"));
+        }
+
+        poolSys.getConnection(function (err, connection) {
+            let sqlString = `SELECT user_id,user_name,nama_lengkap,unit_kerja,sys_jabatan.sysjabatan_kode,
+            sysjabatan_nama,sys_user_code.user_code,sys_user_code.deskripsi FROM sys_daftar_user 
+            INNER JOIN sys_jabatan ON sys_daftar_user.sysjabatan_kode = sys_jabatan.sysjabatan_kode 
+            INNER JOIN sys_user_code ON sys_daftar_user.user_code = sys_user_code.user_code 
+            WHERE USER_NAME=? AND user_web_password=?`;
+            connection.query(sqlString, [params.username, utility.EncodeSHA1(params.password)], function (err, rows) {
+                if (!err && rows.length > 0) {
+                    return res.send(utility.GiveResponse("00", "LOGIN SUKSES",rows));
+                } else {
+                    return res.send(utility.GiveResponse("01", "LOGIN GAGAL! USERNAME ATAU PASSWORD SALAH"));
+                }
+            });
+        });
+
     }
 };

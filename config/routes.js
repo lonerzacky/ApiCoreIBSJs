@@ -19,4 +19,6 @@ routes.post('/' + apicode.apiCodeInquiryRekening + '', tabungan_controller.Handl
 routes.post('/' + apicode.apiCodeMutasiTabungan + '', tabungan_controller.HandlerMutasiTabungan);
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeGetKuitansi + '', global_controller.HandlerGetKuitansi);
+// noinspection JSUnresolvedFunction
+routes.post('/' + apicode.apiCodeLoginApp + '', global_controller.HandlerLoginApp);
 module.exports = routes;

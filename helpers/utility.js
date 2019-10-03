@@ -1,5 +1,6 @@
 const moment = require('moment');
 const uuid = require('node-uuid');
+const crypto = require('crypto');
 
 module.exports = {
     /**
@@ -33,5 +34,13 @@ module.exports = {
     AssignId: function (req, res, next) {
         req.id = uuid.v4();
         next()
+    },
+    /**
+     * @return {string}
+     */
+    EncodeSHA1: function (word) {
+        let shasum = crypto.createHash('sha1');
+        shasum.update('' + word + '');
+        return shasum.digest('hex');
     }
 };
