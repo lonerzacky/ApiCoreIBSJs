@@ -113,6 +113,16 @@ module.exports = {
                 }
             }
         }
+        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
+            if (params.no_rekening_aba === '') {
+                return res.send(utility.GiveResponse("00", "NO REK. TUJUAN HARUS TERISI"));
+            } else {
+                let existNoRekeningABA = await global_function.GetValByKeyValString('no_rekening', 'aba', 'no_rekening', params.no_rekening_aba);
+                if (existNoRekeningABA === '') {
+                    return res.send(utility.GiveResponse("01", "NO REKENING BANK YANG DITUJU TIDAK DITEMUKAN"));
+                }
+            }
+        }
         if (errParam > 0) {
             return res.send(utility.GiveResponse('00', resperrParam));
         }
@@ -143,6 +153,14 @@ module.exports = {
                 global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
                 return res.send(responseBody);
             }
+        } else if (params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
+            let kodeIntegrasiABA = await global_function.GetValByKeyValString('kode_integrasi', 'aba', 'no_rekening', params.no_rekening_aba);
+            let kodePerkSimpananABA = await global_function.GetValByKeyValString('perk_pokok', 'aba_integrasi', 'kode_aba', kodeIntegrasiABA);
+            if (kodePerkSimpananABA === '') {
+                responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN BANK YANG DITUJU GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
+                global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+                return res.send(responseBody);
+            }
         }
 
         if (await global_function.IsKuitansiExist('kuitansi_id', 'tabtrans', 'kuitansi_id', params.kuitansi_id, 'no_rekening', params.no_rekening)) {
@@ -158,14 +176,14 @@ module.exports = {
         pool.getConnection(function (err, connection) {
             let sqlString = `INSERT INTO tabtrans(tabtrans_id,no_rekening,kode_kantor,kuitansi,tgl_trans,
                         jam,pokok,userid,ip_add,kode_trans,my_kode_trans,keterangan,modul_id_source,trans_id_source,
-                        tob,kuitansi_id,sandi_trans,verifikasi,transfer)
-                        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+                        tob,kuitansi_id,sandi_trans,verifikasi,no_rekening_aba,transfer)
+                        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
             connection.query(sqlString,
                 [transId, params.no_rekening, params.kode_kantor, params.kuitansi,
                     params.tgl_trans, params.jam, params.pokok, params.user_id,
                     params.ip_add, params.kode_trans, "200", params.keterangan,
                     "TAB", params.tabtrans_id, "O", params.kuitansi_id, sandiTrans,
-                    params.verifikasi, "1"], function (err) {
+                    params.verifikasi, params.no_rekening_aba, "1"], function (err) {
                     if (err) {
                         console.error(`INSERT TABTRANS ERROR: ${err.message}`);
                         responseBody = utility.GiveResponse("01", "TRANSAKSI TABUNGAN GAGAL");
@@ -191,12 +209,14 @@ module.exports = {
                         tabtrans.kode_integrasi = params.kode_integrasi;
                         tabtrans.kode_integrasi_vs = params.kode_integrasi_vs;
                         tabtrans.kode_perk_ob = params.kode_perk_ob;
+                        tabtrans.no_rekening_aba = params.no_rekening_aba;
                         let result = crudtabung.AddTransTarikTabungan(tabtrans);
                         if (result) {
                             crudtabung.RepostingSaldoTabungan(params.no_rekening, params.tgl_trans);
                             responseBody = utility.GiveResponse("00", "TRANSAKSI TABUNGAN SUKSES", respData);
                         } else {
                             responseBody = utility.GiveResponse("01", "TRANSAKSI TABUNGAN GAGAL");
+                            global_function.DeleteTrans('abatrans', 'trans_id_source', transId);
                             global_function.DeleteTrans('tabtrans', 'trans_id_source', transId);
                             global_function.DeleteTrans('transaksi_master', 'trans_id_source', transId);
                             global_function.DeleteTrans('tabtrans', 'tabtrans_id', transId);
