@@ -57,7 +57,7 @@ module.exports = {
                     connection.query(sqlStringABA,
                         [transIdVs, tabtrans.no_rekening_aba, tabtrans.kode_kantor, tabtrans.kuitansi,
                             tabtrans.tgl_trans, tabtrans.jam, tabtrans.pokok, tabtrans.user_id,
-                            tabtrans.ip_add, tabtrans.kode_trans, '100', tabtrans.keterangan,
+                            tabtrans.ip_add, tabtrans.kode_trans, '200', tabtrans.keterangan,
                             'TAB', tabtrans.tabtrans_id, 'O', tabtrans.kuitansi_id,
                             tabtrans.verifikasi, '1'], function (err) {
                             if (err) {
