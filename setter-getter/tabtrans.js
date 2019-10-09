@@ -16,6 +16,7 @@ let tabtrans = {
     _verifikasi: '',
     _kode_integrasi: '',
     _kode_perk_ob: '',
+    _no_rekening_aba: '',
     set tabtrans_id(tabtrans_id) {
         this._tabtrans_id = tabtrans_id;
     },
@@ -123,6 +124,12 @@ let tabtrans = {
     },
     get kode_perk_ob() {
         return this._kode_perk_ob;
+    },
+    set no_rekening_aba(no_rekening_aba) {
+        this._no_rekening_aba = no_rekening_aba;
+    },
+    get no_rekening_aba() {
+        return this._no_rekening_aba;
     }
 };
 
