@@ -1,6 +1,6 @@
 // noinspection JSUnresolvedVariable
 module.exports = Object.freeze({
-    apiCodeTransTarikTabungan: '101001',
+    apiCodeTransTabungan: '101001',
     apiCodeInquirySaldo: '101002',
     apiCodeMutasiTabungan: '101003',
     apiCodeInquiryRekening: '101004',

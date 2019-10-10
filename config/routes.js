@@ -10,7 +10,7 @@ routes.get('/', (req, res) => {
 });
 
 // noinspection JSUnresolvedFunction
-routes.post('/' + apicode.apiCodeTransTarikTabungan + '', tabungan_controller.HandlerTransTabungan);
+routes.post('/' + apicode.apiCodeTransTabungan + '', tabungan_controller.HandlerTransTabungan);
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeInquirySaldo + '', tabungan_controller.HandlerInquirySaldo);
 // noinspection JSUnresolvedFunction

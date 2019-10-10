@@ -145,28 +145,28 @@ module.exports = {
         let status = await global_function.GetValByKeyValString('status', 'tabung', 'no_rekening', params.no_rekening);
         if (status === '3' || status === '4') {
             responseBody = utility.GiveResponse("01", "TRANSAKSI DITOLAK,NO. REKENING TABUNGAN DIBLOKIR");
-            global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+            global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
             return res.send(responseBody);
         }
         let sandiTrans = await global_function.GetValByKeyValString('sandi_trans_default', 'tab_kode_trans', 'kode_trans', params.kode_trans);
         let kodePerkSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.kode_integrasi);
         if (kodePerkSimpanan === '') {
             responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
-            global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+            global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
             return res.send(responseBody);
         }
         if (params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
             let kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
             if (kodePerkKas === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE KAS, SILAHKAN SETTING PERKIRAAN USER");
-                global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
                 return res.send(responseBody);
             }
         } else if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             let kodePerkSimpananVs = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.kode_integrasi_vs);
             if (kodePerkSimpananVs === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN VS GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
-                global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
                 return res.send(responseBody);
             }
         } else if (params.kode_trans === kodetrans.tabungan.kodeTransSetorABA || params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
@@ -174,7 +174,7 @@ module.exports = {
             let kodePerkSimpananABA = await global_function.GetValByKeyValString('perk_pokok', 'aba_integrasi', 'kode_aba', kodeIntegrasiABA);
             if (kodePerkSimpananABA === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN BANK YANG DITUJU GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
-                global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
                 return res.send(responseBody);
             }
         }
@@ -185,7 +185,7 @@ module.exports = {
         let transId = await global_function.GenerateTransID(params.user_id);
         if (transId === 0) {
             responseBody = utility.GiveResponse("01", "GENERATE TRANS ID GAGAL, SILAHKAN COBA LAGI");
-            global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+            global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
             return res.send(responseBody);
         }
 
@@ -245,7 +245,7 @@ module.exports = {
                             global_function.DeleteTrans('tabtrans', 'tabtrans_id', transId);
                         }
                     }
-                    global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
+                    global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
                     return res.send(responseBody);
                 });
             connection.release();
