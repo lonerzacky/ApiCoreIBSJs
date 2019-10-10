@@ -6,7 +6,7 @@ module.exports = {
     /**
      * @return {boolean}
      */
-    AddTransTarikTabungan: async function (tabtrans) {
+    AddTransTabungan: async function (tabtrans) {
         let res = false;
         let transIdVs = 0;
         let kodeIntegrasiABA = await global_function.GetValByKeyValString('kode_integrasi', 'aba', 'no_rekening', tabtrans.no_rekening_aba);
@@ -35,7 +35,7 @@ module.exports = {
                 });
             }
         }
-        if (tabtrans.no_rekening_aba !== '' && tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
+        if (tabtrans.no_rekening_aba !== '' && (tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorABA || tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikABA)) {
             transIdVs = await global_function.GenerateTransID(tabtrans.user_id);
             let abaPokok = '';
             switch (kodeIntegrasiABA.substring(0, 1)) {
@@ -57,7 +57,7 @@ module.exports = {
                     connection.query(sqlStringABA,
                         [transIdVs, tabtrans.no_rekening_aba, tabtrans.kode_kantor, tabtrans.kuitansi,
                             tabtrans.tgl_trans, tabtrans.jam, tabtrans.pokok, tabtrans.user_id,
-                            tabtrans.ip_add, tabtrans.kode_trans, '200', tabtrans.keterangan,
+                            tabtrans.ip_add, tabtrans.kode_trans, tabtrans.my_kode_trans, tabtrans.keterangan,
                             'TAB', tabtrans.tabtrans_id, 'O', tabtrans.kuitansi_id,
                             tabtrans.verifikasi, '1'], function (err) {
                             if (err) {
@@ -73,13 +73,13 @@ module.exports = {
         }
         let kodePerkiraanSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi);
         let kodePerkKas = '';
-        if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
+        if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorTunai || tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
             kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', tabtrans.user_id);
         } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             kodePerkKas = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi_vs);
-        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
+        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
             kodePerkKas = tabtrans.kode_perk_ob;
-        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
+        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorABA || tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
             kodePerkKas = await global_function.GetValByKeyValString('perk_pokok', 'aba_integrasi', 'kode_aba', kodeIntegrasiABA);
 
         }
@@ -89,12 +89,21 @@ module.exports = {
                 tabtrans.tgl_trans, tabtrans.keterangan, 'TAB', tabtrans.tabtrans_id, tabtrans.user_id,
                 tabtrans.kode_kantor, tabtrans.kuitansi_id, '1');
             if (transMaster) {
-                let transIdDetail = await global_function.GenerateTransID(tabtrans.user_id);
-                res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanSimpanan,
-                    tabtrans.pokok, '0', tabtrans.kode_kantor, tabtrans.keterangan);
-                transIdDetail = await global_function.GenerateTransID(tabtrans.user_id);
-                res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
-                    '0', tabtrans.pokok, tabtrans.kode_kantor, tabtrans.keterangan);
+                if (tabtrans.my_kode_trans === '100') {
+                    let transIdDetail = await global_function.GenerateTransID(tabtrans.user_id);
+                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
+                        tabtrans.pokok, '0', tabtrans.kode_kantor, tabtrans.keterangan);
+                    transIdDetail = await global_function.GenerateTransID(tabtrans.user_id);
+                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanSimpanan,
+                        '0', tabtrans.pokok, tabtrans.kode_kantor, tabtrans.keterangan);
+                } else {
+                    let transIdDetail = await global_function.GenerateTransID(tabtrans.user_id);
+                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanSimpanan,
+                        tabtrans.pokok, '0', tabtrans.kode_kantor, tabtrans.keterangan);
+                    transIdDetail = await global_function.GenerateTransID(tabtrans.user_id);
+                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
+                        '0', tabtrans.pokok, tabtrans.kode_kantor, tabtrans.keterangan);
+                }
             }
         }
         return res;

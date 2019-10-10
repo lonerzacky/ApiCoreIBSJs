@@ -9,7 +9,7 @@ const kodetrans = require('../constants/kodetrans');
 
 // noinspection JSUnresolvedVariable
 module.exports = {
-    HandlerTransTarikTabungan: async function (req, res) {
+    HandlerTransTabungan: async function (req, res) {
         let params = req.body;
         let responseBody = "";
         let resperrParam = '';
@@ -42,6 +42,10 @@ module.exports = {
             resperrParam += 'PARAMETER TGL TRANS TIDAK ADA\n';
             errParam++;
         }
+        if (params.my_kode_trans === '' || !params.my_kode_trans) {
+            resperrParam += 'PARAMETER MY KODE TRANS TIDAK ADA\n';
+            errParam++;
+        }
         if (params.jam === '' || !params.jam) {
             resperrParam += 'PARAMETER JAM TIDAK ADA\n';
             errParam++;
@@ -70,11 +74,12 @@ module.exports = {
             resperrParam += 'PARAMETER USER ID TIDAK ADA\n';
             errParam++;
         }
-        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
+        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai || params.kode_trans === kodetrans.tabungan.kodeTransSetorTunai) {
             let kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
             if (kodePerkKas === '') {
                 return res.send(utility.GiveResponse("01", "KODE PERK KAS USER BELUM TERDEFINISI"));
-            } else {
+            }
+            if (params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
                 let saldoKas = await global_function.GetAccSaldoPerk(kodePerkKas, params.kode_kantor, params.tgl_trans, params.user_id);
                 if (saldoKas < parseFloat(params.pokok)) {
                     return res.send(utility.GiveResponse("01", "SALDO KAS TIDAK MENCUKUPI!"));
@@ -94,7 +99,7 @@ module.exports = {
                 return res.send(utility.GiveResponse("00", "KODE INTEGRASI REK. TUJUAN HARUS TERISI"));
             }
         }
-        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
+        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
             if (params.kode_perk_ob === '') {
                 return res.send(utility.GiveResponse("00", "KODE PERK OB HARUS TERISI"));
             } else {
@@ -103,17 +108,28 @@ module.exports = {
                     return res.send(utility.GiveResponse("01", "KODE PERK OB TIDAK DITEMUKAN"));
                 }
             }
-            if (params.kode_perk_ob.substring(0, 1) === '1' || params.kode_perk_ob.substring(0, 1) === '5') {
-                let saldoPerk = await global_function.GetAccSaldoPerkDetail(params.kode_perk_ob, params.kode_kantor, params.tgl_trans);
-                let flagMinus = await global_function.GetValByKeyValString('flag_minus', 'perkiraan', 'kode_perk', params.kode_perk_ob);
-                if (flagMinus !== '1') {
-                    if (saldoPerk < parseFloat(params.pokok)) {
-                        return res.send(utility.GiveResponse("01", "SALDO PERKIRAAN [" + params.kode_perk_ob + "] TIDAK MENCUKUPI!"));
+            let flagMinus = await global_function.GetValByKeyValString('flag_minus', 'perkiraan', 'kode_perk', params.kode_perk_ob);
+            let saldoPerk = await global_function.GetAccSaldoPerkDetail(params.kode_perk_ob, params.kode_kantor, params.tgl_trans);
+            if (params.kode_trans === kodetrans.tabungan.kodeTransSetorCoa) {
+                if (params.kode_perk_ob.substring(0, 1) === '2' || params.kode_perk_ob.substring(0, 1) === '4') {
+                    if (flagMinus !== '1') {
+                        if (saldoPerk < parseFloat(params.pokok)) {
+                            return res.send(utility.GiveResponse("01", "SALDO PERKIRAAN [" + params.kode_perk_ob + "] TIDAK MENCUKUPI!"));
+                        }
+                    }
+                }
+            }
+            if (params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
+                if (params.kode_perk_ob.substring(0, 1) === '1' || params.kode_perk_ob.substring(0, 1) === '5') {
+                    if (flagMinus !== '1') {
+                        if (saldoPerk < parseFloat(params.pokok)) {
+                            return res.send(utility.GiveResponse("01", "SALDO PERKIRAAN [" + params.kode_perk_ob + "] TIDAK MENCUKUPI!"));
+                        }
                     }
                 }
             }
         }
-        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
+        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorABA || params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
             if (params.no_rekening_aba === '') {
                 return res.send(utility.GiveResponse("00", "NO REK. TUJUAN HARUS TERISI"));
             } else {
@@ -153,7 +169,7 @@ module.exports = {
                 global_function.InsertLogService(apicode.apiCodeTransTarikTabungan, params, responseBody, params.kode_kantor, params.user_id);
                 return res.send(responseBody);
             }
-        } else if (params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
+        } else if (params.kode_trans === kodetrans.tabungan.kodeTransSetorABA || params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
             let kodeIntegrasiABA = await global_function.GetValByKeyValString('kode_integrasi', 'aba', 'no_rekening', params.no_rekening_aba);
             let kodePerkSimpananABA = await global_function.GetValByKeyValString('perk_pokok', 'aba_integrasi', 'kode_aba', kodeIntegrasiABA);
             if (kodePerkSimpananABA === '') {
@@ -173,17 +189,23 @@ module.exports = {
             return res.send(responseBody);
         }
 
+        let tob = '';
+        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorTunai || params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
+            tob = 'T';
+        } else {
+            tob = 'O';
+        }
         pool.getConnection(function (err, connection) {
             let sqlString = `INSERT INTO tabtrans(tabtrans_id,no_rekening,kode_kantor,kuitansi,tgl_trans,
-                        jam,pokok,userid,ip_add,kode_trans,my_kode_trans,keterangan,modul_id_source,trans_id_source,
-                        tob,kuitansi_id,sandi_trans,verifikasi,no_rekening_aba,transfer)
+                        jam,pokok,userid,ip_add,kode_trans,my_kode_trans,keterangan,trans_id_source,
+                        tob,kuitansi_id,sandi_trans,verifikasi,no_rekening_aba,no_rekening_vs,transfer)
                         VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
             connection.query(sqlString,
                 [transId, params.no_rekening, params.kode_kantor, params.kuitansi,
                     params.tgl_trans, params.jam, params.pokok, params.user_id,
-                    params.ip_add, params.kode_trans, "200", params.keterangan,
-                    "TAB", params.tabtrans_id, "O", params.kuitansi_id, sandiTrans,
-                    params.verifikasi, params.no_rekening_aba, "1"], function (err) {
+                    params.ip_add, params.kode_trans, params.my_kode_trans, params.keterangan,
+                    params.tabtrans_id, tob, params.kuitansi_id, sandiTrans,
+                    params.verifikasi, params.no_rekening_aba, params.no_rekening_vs, "1"], function (err) {
                     if (err) {
                         console.error(`INSERT TABTRANS ERROR: ${err.message}`);
                         responseBody = utility.GiveResponse("01", "TRANSAKSI TABUNGAN GAGAL");
@@ -205,12 +227,13 @@ module.exports = {
                         tabtrans.keterangan = params.keterangan;
                         tabtrans.kuitansi_id = params.kuitansi_id;
                         tabtrans.sandi_trans = sandiTrans;
+                        tabtrans.my_kode_trans = params.my_kode_trans;
                         tabtrans.verifikasi = params.verifikasi;
                         tabtrans.kode_integrasi = params.kode_integrasi;
                         tabtrans.kode_integrasi_vs = params.kode_integrasi_vs;
                         tabtrans.kode_perk_ob = params.kode_perk_ob;
                         tabtrans.no_rekening_aba = params.no_rekening_aba;
-                        let result = crudtabung.AddTransTarikTabungan(tabtrans);
+                        let result = crudtabung.AddTransTabungan(tabtrans);
                         if (result) {
                             crudtabung.RepostingSaldoTabungan(params.no_rekening, params.tgl_trans);
                             responseBody = utility.GiveResponse("00", "TRANSAKSI TABUNGAN SUKSES", respData);

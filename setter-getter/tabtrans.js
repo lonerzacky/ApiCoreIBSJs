@@ -13,6 +13,7 @@ let tabtrans = {
     _keterangan: '',
     _kuitansi_id: '',
     _sandi_trans: '',
+    _my_kode_trans: '',
     _verifikasi: '',
     _kode_integrasi: '',
     _kode_perk_ob: '',
@@ -100,6 +101,12 @@ let tabtrans = {
     },
     get sandi_trans() {
         return this._sandi_trans;
+    },
+    set my_kode_trans(my_kode_trans) {
+        this._my_kode_trans = my_kode_trans;
+    },
+    get my_kode_trans() {
+        return this._my_kode_trans;
     },
     set verifikasi(verifikasi) {
         this._verifikasi = verifikasi;
