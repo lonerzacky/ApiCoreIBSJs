@@ -17,12 +17,16 @@ module.exports = {
             resperrParam += 'PARAMETER NO REKENING TIDAK ADA\n';
             errParam++;
         }
-        let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening', params.no_rekening);
+        let existNoRekening = await global_function.GetValByKeyValString('no_rekening', 'aba', 'no_rekening', params.no_rekening);
         if (existNoRekening === '') {
-            return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN TIDAK DITEMUKAN"));
+            return res.send(utility.GiveResponse("01", "NO REKENING ABA TIDAK DITEMUKAN"));
         }
         if (params.tgl_trans === '' || !params.tgl_trans) {
             resperrParam += 'PARAMETER TGL TRANS TIDAK ADA\n';
+            errParam++;
+        }
+        if (params.kode_trans === '' || !params.kode_trans) {
+            resperrParam += 'PARAMETER KODE TRANS TIDAK ADA\n';
             errParam++;
         }
         if (params.my_kode_trans === '' || !params.my_kode_trans) {

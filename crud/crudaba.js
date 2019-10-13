@@ -19,21 +19,23 @@ module.exports = {
                 abatrans.kode_kantor, abatrans.kuitansi_id, '1');
             if (transMaster) {
                 if (abatrans.my_kode_trans === '100') {
-                    let transIdDetail = await global_function.GenerateTransID(abatrans.user_id);
-                    // noinspection JSUnusedAssignment
+                    let transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                     res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
                         abatrans.nominal, '0', abatrans.kode_kantor, abatrans.keterangan);
-                    transIdDetail = await global_function.GenerateTransID(abatrans.userid);
-                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
-                        '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);
+                    if (res){
+                        transIdDetail = await global_function.GenerateTransID(abatrans.userid);
+                        res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
+                            '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);
+                    }
                 } else {
-                    let transIdDetail = await global_function.GenerateTransID(abatrans.user_id);
-                    // noinspection JSUnusedAssignment
+                    let transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                     res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
-                        abatrans.pokok, '0', abatrans.kode_kantor, abatrans.keterangan);
-                    transIdDetail = await global_function.GenerateTransID(abatrans.user_id);
-                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
-                        '0', abatrans.pokok, abatrans.kode_kantor, abatrans.keterangan);
+                        abatrans.nominal, '0', abatrans.kode_kantor, abatrans.keterangan);
+                    if (res){
+                        transIdDetail = await global_function.GenerateTransID(abatrans.userid);
+                        res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
+                            '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);
+                    }
                 }
             }
         }
