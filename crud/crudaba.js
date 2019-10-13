@@ -11,6 +11,8 @@ module.exports = {
         let kodePerkKas = '';
         if (abatrans.kode_trans === kodetrans.aba.kodeTransSetorTunai || abatrans.kode_trans === kodetrans.aba.kodeTransTarikTunai) {
             kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', abatrans.userid);
+        } else if (abatrans.kode_trans === kodetrans.aba.kodeTransSetorCoa || abatrans.kode_trans === kodetrans.aba.kodeTransTarikCoa) {
+            kodePerkKas = abatrans.kode_perk_ob;
         }
         if (abatrans.nominal > '0') {
             let transIdMaster = await global_function.GenerateTransID(abatrans.userid);
@@ -22,7 +24,7 @@ module.exports = {
                     let transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                     res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
                         abatrans.nominal, '0', abatrans.kode_kantor, abatrans.keterangan);
-                    if (res){
+                    if (res) {
                         transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                         res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
                             '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);
@@ -31,7 +33,7 @@ module.exports = {
                     let transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                     res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
                         abatrans.nominal, '0', abatrans.kode_kantor, abatrans.keterangan);
-                    if (res){
+                    if (res) {
                         transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                         res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
                             '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);

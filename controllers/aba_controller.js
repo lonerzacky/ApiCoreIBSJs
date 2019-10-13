@@ -86,6 +86,36 @@ module.exports = {
                 }
             }
         }
+        if (params.kode_trans === kodetrans.aba.kodeTransSetorCoa || params.kode_trans === kodetrans.aba.kodeTransTarikCoa) {
+            if (params.kode_perk_ob === '') {
+                return res.send(utility.GiveResponse("00", "KODE PERK OB HARUS TERISI"));
+            } else {
+                let existKodePerkOb = await global_function.GetValByKeyValString('kode_perk', 'perkiraan', 'kode_perk', params.kode_perk_ob);
+                if (existKodePerkOb === '') {
+                    return res.send(utility.GiveResponse("01", "KODE PERK OB TIDAK DITEMUKAN"));
+                }
+            }
+            let flagMinus = await global_function.GetValByKeyValString('flag_minus', 'perkiraan', 'kode_perk', params.kode_perk_ob);
+            let saldoPerk = await global_function.GetAccSaldoPerkDetail(params.kode_perk_ob, params.kode_kantor, params.tgl_trans);
+            if (params.kode_trans === kodetrans.aba.kodeTransSetorCoa) {
+                if (params.kode_perk_ob.substring(0, 1) === '2' || params.kode_perk_ob.substring(0, 1) === '4') {
+                    if (flagMinus !== '1') {
+                        if (saldoPerk < parseFloat(params.pokok)) {
+                            return res.send(utility.GiveResponse("01", "SALDO PERKIRAAN [" + params.kode_perk_ob + "] TIDAK MENCUKUPI!"));
+                        }
+                    }
+                }
+            }
+            if (params.kode_trans === kodetrans.aba.kodeTransTarikCoa) {
+                if (params.kode_perk_ob.substring(0, 1) === '1' || params.kode_perk_ob.substring(0, 1) === '5') {
+                    if (flagMinus !== '1') {
+                        if (saldoPerk < parseFloat(params.pokok)) {
+                            return res.send(utility.GiveResponse("01", "SALDO PERKIRAAN [" + params.kode_perk_ob + "] TIDAK MENCUKUPI!"));
+                        }
+                    }
+                }
+            }
+        }
         if (await global_function.IsKuitansiExist('kuitansi_id', 'abatrans', 'kuitansi_id', params.kuitansi_id, 'no_rekening', params.no_rekening)) {
             return res.send(utility.GiveResponse("01", "KUITANSI " + params.kuitansi_id + " DUPLIKAT"));
         }
@@ -116,12 +146,13 @@ module.exports = {
         pool.getConnection(function (err, connection) {
             let sqlString = 'INSERT INTO abatrans(abatrans_id,tgl_trans,no_rekening,my_kode_trans,kuitansi,' +
                 'tob,modul_id_source,' + abaPokok + ',keterangan,verifikasi,' +
-                'userid,kode_trans,kode_kantor,jam,ip_add,kuitansi_id)' +
-                'VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+                'userid,kode_trans,kode_kantor,jam,ip_add,kuitansi_id,kode_perk_ob)' +
+                'VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
             connection.query(sqlString, [
                 transId, params.tgl_trans, params.no_rekening, params.my_kode_trans, params.kuitansi,
                 tob, params.kode_integrasi, params.nominal, params.keterangan, '1', params.user_id,
-                params.kode_trans, params.kode_kantor, params.jam, params.ip_add, params.kuitansi_id
+                params.kode_trans, params.kode_kantor, params.jam, params.ip_add, params.kuitansi_id,
+                params.kode_perk_ob
             ], function (err) {
                 if (err) {
                     console.error(`INSERT ABATRANS ERROR: ${err.message}`);
@@ -140,7 +171,8 @@ module.exports = {
                     abatrans.keterangan = params.keterangan;
                     abatrans.kode_kantor = params.kode_kantor;
                     abatrans.kuitansi_id = params.kuitansi_id;
-                    abatrans.my_kode_trans=params.my_kode_trans;
+                    abatrans.my_kode_trans = params.my_kode_trans;
+                    abatrans.kode_perk_ob = params.kode_perk_ob;
                     let result = crudaba.AddTransABA(abatrans);
                     if (result) {
                         saldo.RepostingSaldoABA(params.no_rekening, params.tgl_trans);
