@@ -15,5 +15,6 @@ module.exports = Object.freeze({
         kodeTransTransfer: '204',
         kodeTransSetorBunga: '101',
         kodeTransSetorCoa: '102',
+        kodeTransTarikCoa: '202',
     }
 });
