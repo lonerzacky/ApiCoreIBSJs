@@ -6,6 +6,8 @@ let abatrans = {
     _kuitansi: '',
     _tob: '',
     _modul_id_source: '',
+    _kode_integrasi: '',
+    _nominal: '',
     _giro_pokok: '',
     _tab_pokok: '',
     _dep_pokok: '',
@@ -58,6 +60,18 @@ let abatrans = {
     },
     get modul_id_source() {
         return this._modul_id_source;
+    },
+    set kode_integrasi(kode_integrasi) {
+        this._kode_integrasi = kode_integrasi;
+    },
+    get kode_integrasi() {
+        return this._kode_integrasi;
+    },
+    set nominal(nominal) {
+        this._nominal = nominal;
+    },
+    get nominal() {
+        return this._nominal;
     },
     set giro_pokok(giro_pokok) {
         this._giro_pokok = giro_pokok;
