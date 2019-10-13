@@ -6,6 +6,7 @@ const tabtrans = require('../setter-getter/tabtrans');
 const crudtabung = require('../crud/crudtabung');
 const apicode = require('../constants/apicode');
 const kodetrans = require('../constants/kodetrans');
+const saldo = require('../helpers/saldo');
 
 // noinspection JSUnresolvedVariable
 module.exports = {
@@ -155,7 +156,7 @@ module.exports = {
             global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
             return res.send(responseBody);
         }
-        if (params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
+        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorTunai || params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
             let kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
             if (kodePerkKas === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE KAS, SILAHKAN SETTING PERKIRAAN USER");
@@ -235,7 +236,7 @@ module.exports = {
                         tabtrans.no_rekening_aba = params.no_rekening_aba;
                         let result = crudtabung.AddTransTabungan(tabtrans);
                         if (result) {
-                            crudtabung.RepostingSaldoTabungan(params.no_rekening, params.tgl_trans);
+                            saldo.RepostingSaldoTabungan(params.no_rekening, params.tgl_trans);
                             responseBody = utility.GiveResponse("00", "TRANSAKSI TABUNGAN SUKSES", respData);
                         } else {
                             responseBody = utility.GiveResponse("01", "TRANSAKSI TABUNGAN GAGAL");
@@ -267,7 +268,7 @@ module.exports = {
         if (params.user_id === '' || !params.user_id) {
             return res.send(utility.GiveResponse("01", "USER ID HARUS DIISI"));
         }
-        let saldoAkhir = await crudtabung.GetSaldoAkhirTabungan(params.no_rekening, moment().format('YYYYMMDD'));
+        let saldoAkhir = await saldo.GetSaldoAkhirTabungan(params.no_rekening, moment().format('YYYYMMDD'));
         pool.getConnection(function (err, connection) {
             let sqlString = `SELECT no_rekening,nama_nasabah FROM tabung
             LEFT JOIN nasabah ON tabung.nasabah_id = nasabah.nasabah_id WHERE tabung.kode_kantor = ?  AND (
@@ -307,7 +308,7 @@ module.exports = {
         if (params.user_id === '' || !params.user_id) {
             return res.send(utility.GiveResponse("01", "USER ID HARUS DIISI"));
         }
-        let saldoAkhir = await crudtabung.GetSaldoAkhirTabungan(params.no_rekening, moment().format('YYYYMMDD'));
+        let saldoAkhir = await saldo.GetSaldoAkhirTabungan(params.no_rekening, moment().format('YYYYMMDD'));
         pool.getConnection(function (err, connection) {
             let sqlString = `SELECT no_rekening,nama_nasabah,nama_ibu_kandung,alamat,jenis_kelamin,
             tempatlahir,tgllahir,tabung.tgl_register,no_id,tabung.no_alternatif,
