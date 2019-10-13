@@ -140,6 +140,7 @@ module.exports = {
                     abatrans.keterangan = params.keterangan;
                     abatrans.kode_kantor = params.kode_kantor;
                     abatrans.kuitansi_id = params.kuitansi_id;
+                    abatrans.my_kode_trans=params.my_kode_trans;
                     let result = crudaba.AddTransABA(abatrans);
                     if (result) {
                         saldo.RepostingSaldoABA(params.no_rekening, params.tgl_trans);

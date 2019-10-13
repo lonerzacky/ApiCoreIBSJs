@@ -11,7 +11,7 @@ module.exports = Object.freeze({
     },
     aba: {
         kodeTransSetorTunai: '100',
-        kodeTransTarikTunai: '100',
+        kodeTransTarikTunai: '200',
         kodeTransTransfer: '204',
         kodeTransSetorBunga: '101',
         kodeTransSetorCoa: '102',

@@ -20,20 +20,20 @@ module.exports = {
             if (transMaster) {
                 if (abatrans.my_kode_trans === '100') {
                     let transIdDetail = await global_function.GenerateTransID(abatrans.userid);
-                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
-                        abatrans.nominal, '0', abatrans.kode_kantor, abatrans.keterangan);
-                    if (res){
-                        transIdDetail = await global_function.GenerateTransID(abatrans.userid);
-                        res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
-                            '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);
-                    }
-                } else {
-                    let transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                     res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
                         abatrans.nominal, '0', abatrans.kode_kantor, abatrans.keterangan);
                     if (res){
                         transIdDetail = await global_function.GenerateTransID(abatrans.userid);
                         res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
+                            '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);
+                    }
+                } else {
+                    let transIdDetail = await global_function.GenerateTransID(abatrans.userid);
+                    res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
+                        abatrans.nominal, '0', abatrans.kode_kantor, abatrans.keterangan);
+                    if (res){
+                        transIdDetail = await global_function.GenerateTransID(abatrans.userid);
+                        res = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanPokok,
                             '0', abatrans.nominal, abatrans.kode_kantor, abatrans.keterangan);
                     }
                 }
