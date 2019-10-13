@@ -19,6 +19,7 @@ let abatrans = {
     _jam: '',
     _ip_add: '',
     _kuitansi_id: '',
+    _kode_perk_ob: '',
     set abatrans_id(abatrans_id) {
         this._abatrans_id = abatrans_id;
     },
@@ -138,6 +139,12 @@ let abatrans = {
     },
     get kuitansi_id() {
         return this._kuitansi_id;
+    },
+    set kode_perk_ob(kode_perk_ob) {
+        this._kode_perk_ob = kode_perk_ob;
+    },
+    get kode_perk_ob() {
+        return this._kode_perk_ob;
     }
 };
 
