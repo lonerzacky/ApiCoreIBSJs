@@ -9,4 +9,11 @@ module.exports = Object.freeze({
         kodeTransSetorABA: '115',
         kodeTransTarikABA: '215'
     },
+    aba: {
+        kodeTransSetorTunai: '100',
+        kodeTransTarikTunai: '100',
+        kodeTransTransfer: '204',
+        kodeTransSetorBunga: '101',
+        kodeTransSetorCoa: '102',
+    }
 });
