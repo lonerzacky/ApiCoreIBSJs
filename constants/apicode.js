@@ -6,5 +6,6 @@ module.exports = Object.freeze({
     apiCodeInquiryRekening: '101004',
     apiCodeTransABA: '102001',
     apiCodeGetKuitansi: '201001',
-    apiCodeLoginApp: '201002'
+    apiCodeLoginApp: '201002',
+    apiCodeCekStatusTransaksi: '201003'
 });
