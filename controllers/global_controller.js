@@ -1,5 +1,6 @@
 const utility = require("../helpers/utility");
 const global_function = require('../helpers/global_function');
+const accounting = require('../helpers/accounting');
 const pool = require('../config/pooling');
 const poolSys = require('../config/pooling_sys');
 const apicode = require('../constants/apicode');
@@ -108,7 +109,12 @@ module.exports = {
                 FROM tabtrans WHERE tabtrans_id=? AND kuitansi_id=? AND kode_kantor=?`;
                 connection.query(sqlString, [params.trans_id, params.kuitansi_id, params.kode_kantor], function (err, rows) {
                     if (!err && rows.length > 0) {
-                        responseBody = utility.GiveResponse("00", "TRANSAKSI SUKSES", rows);
+                        let countNoBalance = accounting.GetTabJurnalNoBalance(params.trans_id);
+                        if (countNoBalance > 0) {
+                            responseBody = utility.GiveResponse("00", "TRANSAKSI SUKSES", rows);
+                        } else {
+                            responseBody = utility.GiveResponse("01", "TRANSAKSI PERLU REPOSTING (JURNAL NO BALANCE)", rows);
+                        }
                     } else {
                         responseBody = utility.GiveResponse("01", "TRANSAKSI TIDAK DITEMUKAN");
                     }
