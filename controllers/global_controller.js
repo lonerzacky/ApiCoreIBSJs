@@ -85,6 +85,26 @@ module.exports = {
             });
         });
     },
+    HandlerLoginMobileApp: async function (req, res) {
+        let params = req.body;
+        if (!params.username) {
+            return res.send(utility.GiveResponse("01", "PARAMETER USERNAME KOSONG"));
+        }
+        if (!params.password) {
+            return res.send(utility.GiveResponse("01", "PARAMETER PASSWORD KOSONG"));
+        }
+        pool.getConnection(function (err, connection) {
+            let sqlString = `SELECT nasabah_id,nama_nasabah,nama_ibu_kandung,alamat,tempatlahir,tgllahir,
+            no_id,tgl_register,kode_kantor,username from nasabah WHERE username=? AND password=?`;
+            connection.query(sqlString, [params.username, utility.EncodeSHA1(params.password)], function (err, rows) {
+                if (!err && rows.length > 0) {
+                    return res.send(utility.GiveResponse("00", "LOGIN SUKSES", rows));
+                } else {
+                    return res.send(utility.GiveResponse("01", "LOGIN GAGAL! USERNAME ATAU PASSWORD SALAH"));
+                }
+            });
+        });
+    },
     HandlerCekStatus: async function (req, res) {
         let params = req.body;
         let responseBody = "";
