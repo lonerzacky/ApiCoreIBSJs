@@ -23,11 +23,13 @@ module.exports = {
         }
         if (params.type === 'tabungan') {
             pool.getConnection(function (err, connection) {
-                let sqlString = 'SELECT tabtrans_id,tabtrans.userid,tabung.no_rekening,tabtrans.kode_kantor,kode_integrasi,my_kode_trans,pokok,' +
+                let sqlString = 'SELECT tabtrans_id,tabtrans.userid,tabtrans.kuitansi,tabtrans.kuitansi_id,no_rekening_aba,no_rekening_vs,kode_perk_ob,' +
+                    ' tabung.no_rekening,tabtrans.kode_kantor,kode_integrasi,my_kode_trans,pokok,' +
                     ' kode_trans,tabtrans.keterangan FROM tabtrans INNER JOIN tabung ON tabung.no_rekening = tabtrans.no_rekening' +
                     ' WHERE tabtrans_id = ' + params.trans_id + ' AND kuitansi_id NOT IN ( SELECT kuitansi_id FROM transaksi_master WHERE' +
                     ' kuitansi_id IS NOT NULL AND TRANS_ID_SOURCE = ' + params.trans_id + ' ) UNION ALL' +
-                    ' SELECT tabtrans_id,tabtrans.userid,tabung.no_rekening,tabtrans.kode_kantor,kode_integrasi,my_kode_trans,pokok,kode_trans,' +
+                    ' SELECT tabtrans_id,tabtrans.userid,tabtrans.kuitansi,tabtrans.kuitansi_id,no_rekening_aba,no_rekening_vs,kode_perk_ob,' +
+                    ' tabung.no_rekening,tabtrans.kode_kantor,kode_integrasi,my_kode_trans,pokok,kode_trans,' +
                     ' tabtrans.keterangan FROM tabtrans INNER JOIN tabung ON tabung.no_rekening = tabtrans.no_rekening WHERE' +
                     ' tabtrans_id = ' + params.trans_id + ' AND kuitansi_id IN (SELECT kuitansi_id FROM transaksi_master WHERE' +
                     ' trans_id IN (SELECT x.MASTER_ID FROM(SELECT MASTER_ID,sum( debet ) debet,sum( kredit ) kredit' +
@@ -75,10 +77,6 @@ module.exports = {
             resperrParam += 'PARAMETER KODE INTEGRASI TIDAK ADA\n';
             errParam++;
         }
-        if (params.kode_trans === '' || !params.kode_trans) {
-            resperrParam += 'PARAMETER KODE TRANS TIDAK ADA\n';
-            errParam++;
-        }
         if (params.keterangan === '' || !params.keterangan) {
             resperrParam += 'KETERANGAN TRANSAKSI TIDAK ADA\n';
             errParam++;
@@ -95,6 +93,24 @@ module.exports = {
             resperrParam += 'PARAMETER MY KODE TRANS TIDAK ADA\n';
             errParam++;
         }
+        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
+            if (params.kode_perk_ob === '' || !params.kode_perk_ob) {
+                resperrParam += 'KODE PERK OB TIDAK ADA\n';
+                errParam++;
+            }
+        }
+        if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
+            if (params.no_rekening_vs === '' || !params.no_rekening_vs) {
+                resperrParam += 'NOREK VS TIDAK ADA\n';
+                errParam++;
+            }
+        }
+        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorABA || params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
+            if (params.no_rekening_aba === '' || !params.no_rekening_aba) {
+                resperrParam += 'NOREK ABA TIDAK ADA\n';
+                errParam++;
+            }
+        }
         if (params.pokok === '' || !params.pokok) {
             resperrParam += 'PARAMETER POKOK TIDAK ADA\n';
             errParam++;
@@ -108,6 +124,9 @@ module.exports = {
         let kodePerkKas = '';
         if (params.kode_trans === kodetrans.tabungan.kodeTransSetorTunai || params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
             kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
+        } else if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
+            let kodeIntegrasiVs = await global_function.GetValByKeyValString('kode_integrasi', 'tabung', 'no_rekening', params.no_rekening_vs);
+            kodePerkKas = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', kodeIntegrasiVs);
         } else if (params.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
             kodePerkKas = params.kode_perk_ob;
         } else if (params.kode_trans === kodetrans.tabungan.kodeTransSetorABA || params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
@@ -140,7 +159,10 @@ module.exports = {
             }
         }
         if (result) {
-            responseBody = utility.GiveResponse("00", "REPOSTING TRANSAKSI SUKSES");
+            let respData = {
+                'trans_id': params.trans_id
+            };
+            responseBody = utility.GiveResponse("00", "REPOSTING TRANSAKSI SUKSES", respData);
         } else {
             responseBody = utility.GiveResponse("01", "REPOSTING TRANSAKSI GAGAL");
         }
