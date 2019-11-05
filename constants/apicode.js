@@ -9,5 +9,6 @@ module.exports = Object.freeze({
     apiCodeLoginApp: '201002',
     apiCodeCekStatusTransaksi: '201003',
     apiCodeLoginMobileApp: '201004',
-    apiCodeInquiryRepostingJurnal: '201005'
+    apiCodeInquiryRepostingJurnal: '201005',
+    apiCodeRepostingJurnal: '201006'
 });

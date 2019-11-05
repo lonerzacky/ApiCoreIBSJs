@@ -31,4 +31,6 @@ routes.post('/' + apicode.apiCodeLoginMobileApp + '', global_controller.HandlerL
 routes.post('/' + apicode.apiCodeCekStatusTransaksi + '', global_controller.HandlerCekStatus);
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeInquiryRepostingJurnal + '', reposting_jurnal_controller.HandlerInquiryRepostingJurnal);
+// noinspection JSUnresolvedFunction
+routes.post('/' + apicode.apiCodeRepostingJurnal + '', reposting_jurnal_controller.HandlerRepostingJurnal);
 module.exports = routes;
