@@ -27,10 +27,6 @@ module.exports = {
             resperrParam += 'PARAMETER KODE KANTOR TIDAK ADA\n';
             errParam++;
         }
-        if (params.kode_integrasi === '' || !params.kode_integrasi) {
-            resperrParam += 'PARAMETER KODE INTEGRASI TIDAK ADA\n';
-            errParam++;
-        }
         if (params.kuitansi === '' || !params.kuitansi) {
             resperrParam += 'NOMOR KUITANSI KOSONG!\n';
             errParam++;
@@ -96,9 +92,6 @@ module.exports = {
                     return res.send(utility.GiveResponse("01", "NO REKENING TABUNGAN VS TIDAK DITEMUKAN"));
                 }
             }
-            if (params.kode_integrasi_vs === '') {
-                return res.send(utility.GiveResponse("00", "KODE INTEGRASI REK. TUJUAN HARUS TERISI"));
-            }
         }
         if (params.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
             if (params.kode_perk_ob === '') {
@@ -143,6 +136,12 @@ module.exports = {
         if (errParam > 0) {
             return res.send(utility.GiveResponse('00', resperrParam));
         }
+        let kode_integrasi = await global_function.GetValByKeyValString('kode_integrasi', 'tabung', 'no_rekening', params.no_rekening);
+        if (kode_integrasi === '') {
+            responseBody = utility.GiveResponse("01", "KODE INTEGRASI TABUNGAN TIDAK DITEMUKAN");
+            global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
+            return res.send(responseBody);
+        }
         let status = await global_function.GetValByKeyValString('status', 'tabung', 'no_rekening', params.no_rekening);
         if (status === '3' || status === '4') {
             responseBody = utility.GiveResponse("01", "TRANSAKSI DITOLAK,NO. REKENING TABUNGAN DIBLOKIR");
@@ -150,12 +149,13 @@ module.exports = {
             return res.send(responseBody);
         }
         let sandiTrans = await global_function.GetValByKeyValString('sandi_trans_default', 'tab_kode_trans', 'kode_trans', params.kode_trans);
-        let kodePerkSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.kode_integrasi);
+        let kodePerkSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', kode_integrasi);
         if (kodePerkSimpanan === '') {
             responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
             global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
             return res.send(responseBody);
         }
+        let kode_integrasi_vs = '';
         if (params.kode_trans === kodetrans.tabungan.kodeTransSetorTunai || params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
             let kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
             if (kodePerkKas === '') {
@@ -164,7 +164,13 @@ module.exports = {
                 return res.send(responseBody);
             }
         } else if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
-            let kodePerkSimpananVs = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.kode_integrasi_vs);
+            kode_integrasi_vs = await global_function.GetValByKeyValString('kode_integrasi', 'tabung', 'no_rekening', params.no_rekening_vs);
+            if (kode_integrasi_vs === '') {
+                responseBody = utility.GiveResponse("01", "KODE INTEGRASI TABUNGAN VS TIDAK DITEMUKAN");
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
+                return res.send(responseBody);
+            }
+            let kodePerkSimpananVs = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', kode_integrasi_vs);
             if (kodePerkSimpananVs === '') {
                 responseBody = utility.GiveResponse("01", "LOAD KODE SIMPANAN VS GAGAL, SILAHKAN SETTING INTEGRASI PERKIRAAN");
                 global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, params.kode_kantor, params.user_id);
@@ -179,7 +185,6 @@ module.exports = {
                 return res.send(responseBody);
             }
         }
-
         if (await global_function.IsKuitansiExist('kuitansi_id', 'tabtrans', 'kuitansi_id', params.kuitansi_id, 'no_rekening', params.no_rekening)) {
             return res.send(utility.GiveResponse("01", "KUITANSI " + params.kuitansi_id + " DUPLIKAT"));
         }
@@ -212,7 +217,8 @@ module.exports = {
                         responseBody = utility.GiveResponse("01", "TRANSAKSI TABUNGAN GAGAL");
                     } else {
                         let respData = {
-                            'trans_id': transId
+                            'trans_id': transId,
+                            'kuitansi_id': params.kuitansi_id
                         };
                         tabtrans.tabtrans_id = transId;
                         tabtrans.no_rekening = params.no_rekening;
@@ -230,8 +236,8 @@ module.exports = {
                         tabtrans.sandi_trans = sandiTrans;
                         tabtrans.my_kode_trans = params.my_kode_trans;
                         tabtrans.verifikasi = params.verifikasi;
-                        tabtrans.kode_integrasi = params.kode_integrasi;
-                        tabtrans.kode_integrasi_vs = params.kode_integrasi_vs;
+                        tabtrans.kode_integrasi = kode_integrasi;
+                        tabtrans.kode_integrasi_vs = kode_integrasi_vs;
                         tabtrans.kode_perk_ob = params.kode_perk_ob;
                         tabtrans.no_rekening_aba = params.no_rekening_aba;
                         let result = crudtabung.AddTransTabungan(tabtrans);
@@ -270,7 +276,7 @@ module.exports = {
         }
         let saldoAkhir = await saldo.GetSaldoAkhirTabungan(params.no_rekening, moment().format('YYYYMMDD'));
         pool.getConnection(function (err, connection) {
-            let sqlString = `SELECT no_rekening,nama_nasabah FROM tabung
+            let sqlString = `SELECT no_rekening,nama_nasabah,kode_integrasi FROM tabung
             LEFT JOIN nasabah ON tabung.nasabah_id = nasabah.nasabah_id WHERE tabung.kode_kantor = ?  AND (
             tabung.STATUS NOT IN ( 2 )) AND tabung.verifikasi > 0  AND no_rekening = ? LIMIT 1`;
             connection.query(sqlString,
@@ -282,6 +288,7 @@ module.exports = {
                         let infoInquiry = {
                             no_rekening: rows[0].no_rekening,
                             nama_nasabah: rows[0].nama_nasabah,
+                            kode_integrasi: rows[0].kode_integrasi,
                             saldo_akhir: saldoAkhir.toString()
                         };
                         responseBody = utility.GiveResponse("00", "INQUIRY SALDO TABUNGAN SUKSES", infoInquiry);
@@ -312,7 +319,7 @@ module.exports = {
         pool.getConnection(function (err, connection) {
             let sqlString = `SELECT no_rekening,nama_nasabah,nama_ibu_kandung,alamat,jenis_kelamin,
             tempatlahir,tgllahir,tabung.tgl_register,no_id,tabung.no_alternatif,
-            tab_produk.kode_produk,tab_produk.deskripsi_produk FROM tabung
+            tab_produk.kode_produk,tab_produk.deskripsi_produk,tabung.kode_integrasi FROM tabung
             LEFT JOIN nasabah ON tabung.nasabah_id = nasabah.nasabah_id 
             LEFT JOIN tab_produk ON tabung.kode_produk = tab_produk.kode_produk
             WHERE tabung.kode_kantor = ?  AND (
@@ -336,6 +343,7 @@ module.exports = {
                             no_alternatif: rows[0].no_alternatif,
                             kode_produk: rows[0].kode_produk,
                             deskripsi_produk: rows[0].deskripsi_produk,
+                            kode_integrasi: rows[0].kode_integrasi,
                             saldo_akhir: saldoAkhir.toString()
                         };
                         responseBody = utility.GiveResponse("00", "INQUIRY REKENING TABUNGAN SUKSES", infoInquiry);
