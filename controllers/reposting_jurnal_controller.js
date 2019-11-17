@@ -11,11 +11,11 @@ module.exports = {
         let resperrParam = '';
         let errParam = 0;
         if (params.trans_id === '' || !params.trans_id) {
-            resperrParam += 'TRANSAKSI ID TIDAK ADA\n';
+            resperrParam += 'NO TRX ID FOUND\n';
             errParam++;
         }
         if (!params.type) {
-            resperrParam += 'TYPE TRANSAKSI TIDAK ADA\n';
+            resperrParam += 'MISSING TRX TYPE PARAMETER\n';
             errParam++;
         }
         if (errParam > 0) {
@@ -37,11 +37,27 @@ module.exports = {
                     ' WHERE KODE_JURNAL = "TAB" AND TRANS_ID_SOURCE = ' + params.trans_id + ' ) GROUP BY master_id ) x WHERE debet <> kredit ))';
                 connection.query(sqlString, function (err, rows) {
                     if (!err && rows.length > 0) {
-                        responseBody = utility.GiveResponse("00", "LOAD REPOSTING JURNAL SUKSES", rows);
+                        let infoTrans = [{
+                            trans_id: rows[0].tabtrans_id,
+                            userid: rows[0].userid,
+                            trx_number: rows[0].kuitansi,
+                            trx_ref_id: rows[0].kuitansi_id,
+                            account_number_aba: rows[0].no_rekening_aba,
+                            account_number_vs: rows[0].no_rekening_vs,
+                            ob_coa_code: rows[0].kode_perk_ob,
+                            account_number: rows[0].no_rekening,
+                            client_id: rows[0].kode_kantor,
+                            integration_code: rows[0].kode_integrasi,
+                            my_trans_code: rows[0].my_kode_trans,
+                            trx_amount: rows[0].pokok,
+                            trans_code: rows[0].kode_trans,
+                            trx_description: rows[0].keterangan,
+                        }];
+                        responseBody = utility.GiveResponse("00", "SUCCESSFULLY LOAD REPOSTING JOURNAL", infoTrans);
                     } else {
-                        responseBody = utility.GiveResponse("01", "LOAD REPOSTING JURNAL GAGAL! TRANSAKSI TIDAK DITEMUKAN");
+                        responseBody = utility.GiveResponse("01", "LOAD REPOSTING JOURNAL FAILED! TRANSACTIONS IS NOT FOUND");
                     }
-                    global_function.InsertLogService(apicode.apiCodeInquiryRepostingJurnal, params, responseBody, params.kode_kantor, params.user_id);
+                    global_function.InsertLogService(apicode.apiCodeInquiryRepostingJurnal, params, responseBody, params.kode_kantor, process.env.APIUSERID);
                     return res.send(responseBody);
                 });
             });
@@ -53,66 +69,62 @@ module.exports = {
         let resperrParam = '';
         let errParam = 0;
         if (params.trans_id === '' || !params.trans_id) {
-            resperrParam += 'TRANSAKSI ID TIDAK ADA\n';
-            errParam++;
-        }
-        if (params.user_id === '' || !params.user_id) {
-            resperrParam += 'USER ID TRANSAKSI TIDAK ADA\n';
+            resperrParam += 'MISSING TRANS ID PARAMETER\n';
             errParam++;
         }
 
-        if (params.tgl_trans === '' || !params.tgl_trans) {
-            resperrParam += 'TANGGAL TRANSAKSI TIDAK ADA\n';
+        if (params.date_transaction === '' || !params.date_transaction) {
+            resperrParam += 'MISSING DATE TRANSACTION PARAMETER\n';
             errParam++;
         }
-        if (params.kode_trans === '' || !params.kode_trans) {
-            resperrParam += 'TANGGAL TRANSAKSI TIDAK ADA\n';
+        if (params.trans_code === '' || !params.trans_code) {
+            resperrParam += 'MISSING TRANSACTION CODE PARAMETER\n';
             errParam++;
         }
-        if (params.kode_kantor === '' || !params.kode_kantor) {
-            resperrParam += 'KODE KANTOR TRANSAKSI TIDAK ADA\n';
+        if (params.client_id === '' || !params.client_id) {
+            resperrParam += 'MISSING CLIENT ID PARAMETER\n';
             errParam++;
         }
-        if (params.kode_integrasi === '' || !params.kode_integrasi) {
-            resperrParam += 'PARAMETER KODE INTEGRASI TIDAK ADA\n';
+        if (params.integration_code === '' || !params.integration_code) {
+            resperrParam += 'MISSING INTEGRATION CODE PARAMETER\n';
             errParam++;
         }
-        if (params.keterangan === '' || !params.keterangan) {
-            resperrParam += 'KETERANGAN TRANSAKSI TIDAK ADA\n';
+        if (params.trx_description === '' || !params.trx_description) {
+            resperrParam += 'MISSING TRANSACTION DESCRIPTION PARAMETER\n';
             errParam++;
         }
-        if (params.kuitansi === '' || !params.kuitansi) {
-            resperrParam += 'NOMOR KUITANSI KOSONG!\n';
+        if (params.trx_number === '' || !params.trx_number) {
+            resperrParam += 'TRX NUMBER IS EMPTY!\n';
             errParam++;
         }
-        if (params.kuitansi_id === '' || !params.kuitansi_id) {
-            resperrParam += 'NOMOR REFRENSI SYSTEM KOSONG!\n';
+        if (params.trx_number_id === '' || !params.trx_number_id) {
+            resperrParam += 'TRX REF ID IS EMPTY!\n';
             errParam++;
         }
-        if (params.my_kode_trans === '' || !params.my_kode_trans) {
-            resperrParam += 'PARAMETER MY KODE TRANS TIDAK ADA\n';
+        if (params.my_trans_code === '' || !params.my_trans_code) {
+            resperrParam += 'MISSING MY TRANS CODE PARAMETER\n';
             errParam++;
         }
-        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
-            if (params.kode_perk_ob === '' || !params.kode_perk_ob) {
-                resperrParam += 'KODE PERK OB TIDAK ADA\n';
+        if (params.trans_code === kodetrans.tabungan.kodeTransSetorCoa || params.trans_code === kodetrans.tabungan.kodeTransTarikCoa) {
+            if (params.ob_coa_code === '' || !params.ob_coa_code) {
+                resperrParam += 'MISSING OB COA CODE PARAMETER\n';
                 errParam++;
             }
         }
-        if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
-            if (params.no_rekening_vs === '' || !params.no_rekening_vs) {
-                resperrParam += 'NOREK VS TIDAK ADA\n';
+        if (params.trans_code === kodetrans.tabungan.kodeTransTransfer) {
+            if (params.account_number_vs === '' || !params.account_number_vs) {
+                resperrParam += 'ACCOUNT NUMBER VS IS NOT FOUND\n';
                 errParam++;
             }
         }
-        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorABA || params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
-            if (params.no_rekening_aba === '' || !params.no_rekening_aba) {
-                resperrParam += 'NOREK ABA TIDAK ADA\n';
+        if (params.trans_code === kodetrans.tabungan.kodeTransSetorABA || params.trans_code === kodetrans.tabungan.kodeTransTarikABA) {
+            if (params.account_number_aba === '' || !params.account_number_aba) {
+                resperrParam += 'ACCOUNT NUMBER ABA IS NOT FOUND\n';
                 errParam++;
             }
         }
-        if (params.pokok === '' || !params.pokok) {
-            resperrParam += 'PARAMETER POKOK TIDAK ADA\n';
+        if (params.trx_amount === '' || !params.trx_amount) {
+            resperrParam += 'MISSING TRX AMOUNT PARAMETER\n';
             errParam++;
         }
         if (errParam > 0) {
@@ -120,41 +132,41 @@ module.exports = {
         }
         global_function.DeleteTrans('transaksi_master', 'trans_id_source', params.trans_id);
         let result = false;
-        let kodePerkiraanSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.kode_integrasi);
+        let kodePerkiraanSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', params.integration_code);
         let kodePerkKas = '';
-        if (params.kode_trans === kodetrans.tabungan.kodeTransSetorTunai || params.kode_trans === kodetrans.tabungan.kodeTransTarikTunai) {
-            kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', params.user_id);
-        } else if (params.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
-            let kodeIntegrasiVs = await global_function.GetValByKeyValString('kode_integrasi', 'tabung', 'no_rekening', params.no_rekening_vs);
+        if (params.trans_code === kodetrans.tabungan.kodeTransSetorTunai || params.trans_code === kodetrans.tabungan.kodeTransTarikTunai) {
+            kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', process.env.APIUSERID);
+        } else if (params.trans_code === kodetrans.tabungan.kodeTransTransfer) {
+            let kodeIntegrasiVs = await global_function.GetValByKeyValString('kode_integrasi', 'tabung', 'no_rekening', params.account_number_vs);
             kodePerkKas = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', kodeIntegrasiVs);
-        } else if (params.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || params.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
-            kodePerkKas = params.kode_perk_ob;
-        } else if (params.kode_trans === kodetrans.tabungan.kodeTransSetorABA || params.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
-            let kodeIntegrasiABA = await global_function.GetValByKeyValString('kode_integrasi', 'aba', 'no_rekening', params.no_rekening_aba);
+        } else if (params.trans_code === kodetrans.tabungan.kodeTransSetorCoa || params.trans_code === kodetrans.tabungan.kodeTransTarikCoa) {
+            kodePerkKas = params.ob_coa_code;
+        } else if (params.trans_code === kodetrans.tabungan.kodeTransSetorABA || params.trans_code === kodetrans.tabungan.kodeTransTarikABA) {
+            let kodeIntegrasiABA = await global_function.GetValByKeyValString('kode_integrasi', 'aba', 'no_rekening', params.account_number_aba);
             kodePerkKas = await global_function.GetValByKeyValString('perk_pokok', 'aba_integrasi', 'kode_aba', kodeIntegrasiABA);
         }
-        let transIdMaster = await global_function.GenerateTransID(params.user_id);
-        let transMaster = await global_function.InsertTransaksiMaster(transIdMaster, 'TAB', params.kuitansi,
-            params.tgl_trans, params.keterangan, 'TAB', params.trans_id, params.user_id,
-            params.kode_kantor, params.kuitansi_id, '1');
+        let transIdMaster = await global_function.GenerateTransID(process.env.APIUSERID);
+        let transMaster = await global_function.InsertTransaksiMaster(transIdMaster, 'TAB', params.trx_number,
+            params.date_transaction, params.trx_description, 'TAB', params.trans_id, process.env.APIUSERID,
+            params.client_id, params.trx_number_id, '1');
         if (transMaster) {
-            if (params.my_kode_trans === '100') {
-                let transIdDetail = await global_function.GenerateTransID(params.user_id);
+            if (params.my_trans_code === '100') {
+                let transIdDetail = await global_function.GenerateTransID(process.env.APIUSERID);
                 result = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
-                    params.pokok, '0', params.kode_kantor, params.keterangan);
+                    params.trx_amount, '0', params.client_id, params.trx_description);
                 if (result) {
-                    transIdDetail = await global_function.GenerateTransID(params.user_id);
+                    transIdDetail = await global_function.GenerateTransID(process.env.APIUSERID);
                     result = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanSimpanan,
-                        '0', params.pokok, params.kode_kantor, params.keterangan);
+                        '0', params.trx_amount, params.client_id, params.trx_description);
                 }
             } else {
-                let transIdDetail = await global_function.GenerateTransID(params.user_id);
+                let transIdDetail = await global_function.GenerateTransID(process.env.APIUSERID);
                 result = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkiraanSimpanan,
-                    params.pokok, '0', params.kode_kantor, params.keterangan);
+                    params.trx_amount, '0', params.client_id, params.trx_description);
                 if (result) {
-                    transIdDetail = await global_function.GenerateTransID(params.user_id);
+                    transIdDetail = await global_function.GenerateTransID(process.env.APIUSERID);
                     result = await global_function.InsertTransaksiDetail(transIdDetail, transIdMaster, kodePerkKas,
-                        '0', params.pokok, params.kode_kantor, params.keterangan);
+                        '0', params.trx_amount, params.client_id, params.trx_description);
                 }
             }
         }
@@ -162,11 +174,11 @@ module.exports = {
             let respData = {
                 'trans_id': params.trans_id
             };
-            responseBody = utility.GiveResponse("00", "REPOSTING TRANSAKSI SUKSES", respData);
+            responseBody = utility.GiveResponse("00", "REPOSTING TRANSACTION SUKSES", respData);
         } else {
-            responseBody = utility.GiveResponse("01", "REPOSTING TRANSAKSI GAGAL");
+            responseBody = utility.GiveResponse("01", "REPOSTING TRANSACTION FAILED");
         }
-        global_function.InsertLogService(apicode.apiCodeRepostingJurnal, params, responseBody, params.kode_kantor, params.user_id);
+        global_function.InsertLogService(apicode.apiCodeRepostingJurnal, params, responseBody, params.client_id, process.env.APIUSERID);
         return res.send(responseBody);
 
     }
