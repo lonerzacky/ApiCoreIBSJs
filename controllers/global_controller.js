@@ -11,16 +11,12 @@ module.exports = {
         let responseBody = "";
         let resperrParam = '';
         let errParam = 0;
-        if (params.kode_kantor === '' || !params.kode_kantor) {
-            resperrParam += 'PARAMETER KODE KANTOR TIDAK ADA\n';
+        if (params.client_id === '' || !params.client_id) {
+            resperrParam += 'MISSING CLIENT ID PARAMETER\n';
             errParam++;
         }
-        if (params.user_id === '' || !params.user_id) {
-            resperrParam += 'PARAMETER USER ID TIDAK ADA\n';
-            errParam++;
-        }
-        if (params.tgl_trans === '' || !params.tgl_trans) {
-            resperrParam += 'PARAMETER TGL TRANS TIDAK ADA\n';
+        if (params.date_transaction === '' || !params.date_transaction) {
+            resperrParam += 'MISSING DATE TRANSACTION PARAMETER\n';
             errParam++;
         }
         if (errParam > 0) {
@@ -29,31 +25,31 @@ module.exports = {
         let kuitansi = "";
         let setting = await global_function.GetSysMySysIdValue('APP_TEMPLATE_NO_KUITANSI');
         pool.getConnection(function (err, connection) {
-            let sqlString = 'SELECT GENERATE_KUITANSI(' + params.kode_kantor + ',' + params.user_id + ',' + params.tgl_trans + ') kuitansi ';
+            let sqlString = 'SELECT GENERATE_KUITANSI(' + params.client_id + ',' + process.env.APIUSERID + ',' + params.date_transaction + ') kuitansi ';
             connection.query(sqlString, function (err, rows) {
                 if (err) {
                     console.error(`GET FUNC KUITANSI GAGAL : ${err.message}`);
-                    responseBody = utility.GiveResponse("01", "GET KUITANSI GAGAL");
-                    global_function.InsertLogService(apicode.apiCodeGetKuitansi, params, responseBody, params.kode_kantor, params.user_id);
+                    responseBody = utility.GiveResponse("01", "GET TRX REFF NO FAILED");
+                    global_function.InsertLogService(apicode.apiCodeGetKuitansi, params, responseBody, params.client_id, process.env.APIUSERID);
                     return res.send(responseBody);
                 } else {
                     kuitansi = rows[0].kuitansi;
-                    sqlString = 'SELECT GENERATE_KUITANSI_CLIENT(' + params.kode_kantor + ',' + params.tgl_trans + ') no_kuitansi_client';
+                    sqlString = 'SELECT GENERATE_KUITANSI_CLIENT(' + params.client_id + ',' + params.date_transaction + ') no_kuitansi_client';
                     connection.query(sqlString, function (err, rows) {
                         if (err) {
                             console.error(`GET FUNC KUITANSI CLIENT GAGAL : ${err.message}`);
-                            responseBody = utility.GiveResponse("01", "GET KUITANSI CLIENT GAGAL");
-                            global_function.InsertLogService(apicode.apiCodeGetKuitansi, params, responseBody, params.kode_kantor, params.user_id);
+                            responseBody = utility.GiveResponse("01", "GET TRX REFF NO FAILED");
+                            global_function.InsertLogService(apicode.apiCodeGetKuitansi, params, responseBody, params.client_id, process.env.APIUSERID);
                             return res.send(responseBody);
                         } else {
                             // noinspection JSUnresolvedVariable
                             let kuitansiClient = rows[0].no_kuitansi_client;
                             let respKuintasi = {
-                                "no_kuitansi_client": utility.KuitansiClient(setting, params.kode_kantor, kuitansiClient),
-                                "no_kuitansi": kuitansi
+                                "trx_no": utility.KuitansiClient(setting, params.client_id, kuitansiClient),
+                                "trx_ref_id": kuitansi
                             };
-                            responseBody = utility.GiveResponse("00", "GET KUITANSI SUKSES", respKuintasi);
-                            global_function.InsertLogService(apicode.apiCodeGetKuitansi, params, responseBody, params.kode_kantor, params.user_id);
+                            responseBody = utility.GiveResponse("00", "GET TRX REFF NO SUCCESS", respKuintasi);
+                            global_function.InsertLogService(apicode.apiCodeGetKuitansi, params, responseBody, params.client_id, process.env.APIUSERID);
                             return res.send(responseBody);
                         }
                     });
@@ -65,10 +61,10 @@ module.exports = {
     HandlerLoginApp: async function (req, res) {
         let params = req.body;
         if (!params.username) {
-            return res.send(utility.GiveResponse("01", "PARAMETER USERNAME KOSONG"));
+            return res.send(utility.GiveResponse("01", "MISSING USERNAME PARAMETER"));
         }
         if (!params.password) {
-            return res.send(utility.GiveResponse("01", "PARAMETER PASSWORD KOSONG"));
+            return res.send(utility.GiveResponse("01", "MISSING PASSWORD PARAMETER"));
         }
         poolSys.getConnection(function (err, connection) {
             let sqlString = `SELECT user_id,user_name,nama_lengkap,unit_kerja,sys_jabatan.sysjabatan_kode,
@@ -78,9 +74,19 @@ module.exports = {
             WHERE USER_NAME=? AND user_web_password=?`;
             connection.query(sqlString, [params.username, utility.EncodeSHA1(params.password)], function (err, rows) {
                 if (!err && rows.length > 0) {
-                    return res.send(utility.GiveResponse("00", "LOGIN SUKSES", rows));
+                    let respLogin = [{
+                        user_id: rows[0].user_id,
+                        user_name: rows[0].user_name,
+                        full_name: rows[0].nama_lengkap,
+                        client_id: rows[0].unit_kerja,
+                        role_code: rows[0].sysjabatan_kode,
+                        role_description: rows[0].sysjabatan_nama,
+                        user_code: rows[0].user_code,
+                        user_code_description: rows[0].deskripsi
+                    }];
+                    return res.send(utility.GiveResponse("00", "SUCCESSFULLY LOGIN", respLogin));
                 } else {
-                    return res.send(utility.GiveResponse("01", "LOGIN GAGAL! USERNAME ATAU PASSWORD SALAH"));
+                    return res.send(utility.GiveResponse("01", "LOGIN FAILED! INCORRECT USERNAME OR PASSWORD"));
                 }
             });
         });
@@ -88,19 +94,30 @@ module.exports = {
     HandlerLoginMobileApp: async function (req, res) {
         let params = req.body;
         if (!params.username) {
-            return res.send(utility.GiveResponse("01", "PARAMETER USERNAME KOSONG"));
+            return res.send(utility.GiveResponse("01", "MISSING USERNAME PARAMETER"));
         }
         if (!params.password) {
-            return res.send(utility.GiveResponse("01", "PARAMETER PASSWORD KOSONG"));
+            return res.send(utility.GiveResponse("01", "MISSING PASSWORD PARAMETER"));
         }
         pool.getConnection(function (err, connection) {
             let sqlString = `SELECT nasabah_id,nama_nasabah,nama_ibu_kandung,alamat,tempatlahir,tgllahir,
             no_id,tgl_register,kode_kantor,username from nasabah WHERE username=? AND password=?`;
             connection.query(sqlString, [params.username, utility.EncodeSHA1(params.password)], function (err, rows) {
                 if (!err && rows.length > 0) {
-                    return res.send(utility.GiveResponse("00", "LOGIN SUKSES", rows));
+                    let respLogin = [{
+                        customer_id: rows[0].nasabah_id,
+                        customer_name: rows[0].nama_nasabah,
+                        biological_mothers_name: rows[0].nama_ibu_kandung,
+                        address: rows[0].alamat,
+                        date_of_birth: rows[0].tgllahir,
+                        id_number: rows[0].no_id,
+                        registrasion_date: rows[0].tgl_register,
+                        client_id: rows[0].kode_kantor,
+                        username: rows[0].username
+                    }];
+                    return res.send(utility.GiveResponse("00", "SUCCESSFULLY LOGIN", respLogin));
                 } else {
-                    return res.send(utility.GiveResponse("01", "LOGIN GAGAL! USERNAME ATAU PASSWORD SALAH"));
+                    return res.send(utility.GiveResponse("01", "LOGIN FAILED! INCORRECT USERNAME OR PASSWORD"));
                 }
             });
         });
@@ -109,37 +126,41 @@ module.exports = {
         let params = req.body;
         let responseBody = "";
         if (!params.trans_id) {
-            return res.send(utility.GiveResponse("01", "PARAMETER TRANS ID KOSONG"));
+            return res.send(utility.GiveResponse("01", "MISSING TRANS ID PARAMETER"));
         }
-        if (!params.kode_kantor) {
-            return res.send(utility.GiveResponse("01", "PARAMETER KODE KANTOR KOSONG"));
+        if (!params.client_id) {
+            return res.send(utility.GiveResponse("01", "MISSING CLIENT_ID PARAMETER"));
         }
-        if (!params.user_id) {
-            return res.send(utility.GiveResponse("01", "PARAMETER USER ID KOSONG"));
-        }
-        if (!params.kuitansi_id) {
-            return res.send(utility.GiveResponse("01", "PARAMETER KUITANSI ID KOSONG"));
+        if (!params.trx_ref_id) {
+            return res.send(utility.GiveResponse("01", "MISSING TRX REF ID PARAMETER"));
         }
         if (!params.type) {
-            return res.send(utility.GiveResponse("01", "PARAMETER TYPE KOSONG"));
+            return res.send(utility.GiveResponse("01", "MISSING TYPE PARAMETER"));
         }
         if (params.type === 'tabungan') {
             let countNoBalance = await accounting.GetTabJurnalNoBalance(params.trans_id);
             pool.getConnection(function (err, connection) {
                 let sqlString = `SELECT tabtrans_id,kode_kantor,TGL_TRANS,NO_REKENING,POKOK,KETERANGAN 
                 FROM tabtrans WHERE tabtrans_id=? AND kuitansi_id=? AND kode_kantor=?`;
-                connection.query(sqlString, [params.trans_id, params.kuitansi_id, params.kode_kantor], function (err, rows) {
+                connection.query(sqlString, [params.trans_id, params.trx_ref_id, params.client_id], function (err, rows) {
                     if (!err && rows.length > 0) {
-                        console.log(countNoBalance);
+                        let respTrans = [{
+                            trans_id: rows[0].tabtrans_id,
+                            client_id: rows[0].kode_kantor,
+                            date_transaction: rows[0].TGL_TRANS,
+                            account_number: rows[0].NO_REKENING,
+                            trx_amount: rows[0].POKOK,
+                            trx_description: rows[0].KETERANGAN
+                        }];
                         if (countNoBalance === 1) {
-                            responseBody = utility.GiveResponse("01", "TRANSAKSI PERLU REPOSTING (JURNAL NO BALANCE)", rows);
+                            responseBody = utility.GiveResponse("01", "TRANSACTIONS NEED TO REPOSTING (JOURNAL NO BALANCE)", respTrans);
                         } else {
-                            responseBody = utility.GiveResponse("00", "TRANSAKSI SUKSES", rows);
+                            responseBody = utility.GiveResponse("00", "TRANSACTION SUCCESS", respTrans);
                         }
                     } else {
-                        responseBody = utility.GiveResponse("01", "TRANSAKSI TIDAK DITEMUKAN");
+                        responseBody = utility.GiveResponse("01", "TRANSACTION NOT FOUND");
                     }
-                    global_function.InsertLogService(apicode.apiCodeCekStatusTransaksi, params, responseBody, params.kode_kantor, params.user_id);
+                    global_function.InsertLogService(apicode.apiCodeCekStatusTransaksi, params, responseBody, params.client_id, process.env.APIUSERID);
                     return res.send(responseBody);
                 });
             });
