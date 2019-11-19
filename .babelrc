@@ -14,7 +14,8 @@
           "config": "../config",
           "constants": "../constants",
           "crud": "../crud",
-          "setter-getter": "../setter-getter"
+          "setter-getter": "../setter-getter",
+          "middlewares": "../middlewares"
         }
       }
     ]

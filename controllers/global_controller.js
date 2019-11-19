@@ -4,6 +4,7 @@ const accounting = require('../helpers/accounting');
 const pool = require('../config/pooling');
 const poolSys = require('../config/pooling_sys');
 const apicode = require('../constants/apicode');
+const jwt = require('jsonwebtoken');
 
 module.exports = {
     HandlerGetKuitansi: async function (req, res) {
@@ -104,6 +105,11 @@ module.exports = {
             no_id,tgl_register,kode_kantor,username from nasabah WHERE username=? AND password=?`;
             connection.query(sqlString, [params.username, utility.EncodeSHA1(params.password)], function (err, rows) {
                 if (!err && rows.length > 0) {
+                    let token = jwt.sign({
+                        data: utility.EncodeSHA1(params.password)
+                    }, process.env.JWT_SECRET, {
+                        algorithm: 'HS256'
+                    });
                     let respLogin = [{
                         customer_id: rows[0].nasabah_id,
                         customer_name: rows[0].nama_nasabah,
@@ -113,7 +119,8 @@ module.exports = {
                         id_number: rows[0].no_id,
                         registrasion_date: rows[0].tgl_register,
                         client_id: rows[0].kode_kantor,
-                        username: rows[0].username
+                        username: rows[0].username,
+                        token: token
                     }];
                     return res.send(utility.GiveResponse("00", "SUCCESSFULLY LOGIN", respLogin));
                 } else {

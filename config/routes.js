@@ -23,10 +23,7 @@ routes.post('/' + apicode.apiCodeMutasiTabungan + '', tabungan_controller.Handle
 routes.post('/' + apicode.apiCodeTransABA + '', aba_controller.HandlerTransABA);
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeGetKuitansi + '', global_controller.HandlerGetKuitansi);
-// noinspection JSUnresolvedFunction
-routes.post('/' + apicode.apiCodeLoginApp + '', global_controller.HandlerLoginApp);
-// noinspection JSUnresolvedFunction
-routes.post('/' + apicode.apiCodeLoginMobileApp + '', global_controller.HandlerLoginMobileApp);
+
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeCekStatusTransaksi + '', global_controller.HandlerCekStatus);
 // noinspection JSUnresolvedFunction

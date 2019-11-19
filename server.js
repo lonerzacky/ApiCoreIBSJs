@@ -4,14 +4,16 @@ import utility from 'helpers/utility';
 import conn from 'config/connection';
 import morganBody from 'morgan-body';
 import bodyParser from 'body-parser';
-
+import security from 'middlewares/security';
+// noinspection ES6ConvertRequireIntoImport,JSFileReferences
+const global_controller = require('../controllers/global_controller');
+// noinspection JSFileReferences
+const apicode = require('../constants/apicode');
 const morgan = require('morgan');
-
 const express = require('express');
 const app = express();
 // noinspection NpmUsedModulesInstalled
 const routes = require('config/routes');
-
 // noinspection DuplicatedCode
 conn.connect((err) => {
     if (err) {
@@ -39,6 +41,11 @@ app.use(utility.AssignId);
 // noinspection JSUnresolvedFunction
 app.group('/api/' + process.env.PREFIXVER + '', (router) => {
     morganBody(app);
+    // noinspection JSUnresolvedFunction
+    router.post('/' + apicode.apiCodeLoginApp + '', global_controller.HandlerLoginApp);
+    // noinspection JSUnresolvedFunction
+    router.post('/' + apicode.apiCodeLoginMobileApp + '', global_controller.HandlerLoginMobileApp);
+    router.all('*', security.MiddlewareVerifyJWTToken);
     router.use('/', routes);
 });
 
