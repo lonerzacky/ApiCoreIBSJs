@@ -436,5 +436,43 @@ module.exports = {
             });
             connection.release();
         });
+    },
+    HandlerForwardingPayment: async function (req, res) {
+        let params = req.body;
+        let resperrParam = '';
+        let errParam = 0;
+        if (params.txid === '' || !params.txid) {
+            resperrParam += 'MISSING TX ID PARAMETER\n';
+            errParam++;
+        }
+        if (params.oy_txid === '' || !params.oy_txid) {
+            resperrParam += 'MISSING OY TX ID PARAMETER\n';
+            errParam++;
+        }
+        if (params.nominal === '' || !params.nominal) {
+            resperrParam += 'MISSING NOMINAL PARAMETER\n';
+            errParam++;
+        }
+        if (params.name === '' || !params.name) {
+            resperrParam += 'MISSING NAME PARAMETER\n';
+            errParam++;
+        }
+        if (params.phone_number === '' || !params.phone_number) {
+            resperrParam += 'MISSING PHONE NUMBER PARAMETER\n';
+            errParam++;
+        }
+        if (params.note === '' || !params.note) {
+            resperrParam += 'MISSING NOTE PARAMETER\n';
+            errParam++;
+        }
+        if (params.result === '' || !params.result) {
+            resperrParam += 'MISSING RESULT PARAMETER\n';
+            errParam++;
+        }
+        if (errParam > 0) {
+            return res.send(utility.GiveResponse('01', resperrParam));
+        } else {
+            return res.send(utility.GiveResponse('00', "TRANSACTION SUCCESS"));
+        }
     }
 };

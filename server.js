@@ -7,6 +7,8 @@ import bodyParser from 'body-parser';
 import security from 'middlewares/security';
 // noinspection ES6ConvertRequireIntoImport,JSFileReferences
 const global_controller = require('../controllers/global_controller');
+// noinspection ES6ConvertRequireIntoImport,JSFileReferences
+const tabungan_controller = require('../controllers/tabungan_controller');
 // noinspection JSFileReferences
 const apicode = require('../constants/apicode');
 const morgan = require('morgan');
@@ -45,6 +47,8 @@ app.group('/api/' + process.env.PREFIXVER + '', (router) => {
     router.post('/' + apicode.apiCodeLoginApp + '', global_controller.HandlerLoginApp);
     // noinspection JSUnresolvedFunction
     router.post('/' + apicode.apiCodeLoginMobileApp + '', global_controller.HandlerLoginMobileApp);
+    // noinspection JSUnresolvedFunction
+    router.post('/' + apicode.apiCodeForwardingPayment + '', tabungan_controller.HandlerForwardingPayment);
     router.all('*', security.MiddlewareVerifyJWTToken);
     router.use('/', routes);
 });
