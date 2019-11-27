@@ -79,10 +79,10 @@ module.exports = {
                 for (const element of defaultProduct) {
                     let tgl_register = moment().format('YYYY-MM-DD');
                     sqlString = `INSERT INTO tabung(no_rekening,nasabah_id,tgl_register,verifikasi,status,
-                        kode_kantor,kode_integrasi,kode_produk,kode_jenis)VALUES(?,?,?,?,?,?,?,?,?)`;
+                        kode_kantor,kode_integrasi,kode_produk,kode_jenis,no_rekening_virtual)VALUES(?,?,?,?,?,?,?,?,?,?)`;
                     let norek = await global_function.GenerateNoRekening(params.client_id, element.kode_produk);
                     let insertTabung = await pool_promisify.query(sqlString, [norek, nasabah_id, tgl_register, '1', '1',
-                        params.client_id, element.kode_produk, element.kode_produk, element.jenis]);
+                        params.client_id, element.kode_produk, element.kode_produk, element.jenis, utility.GenerateVA()]);
                     if (!insertTabung) {
                         errors++;
                     }

@@ -42,5 +42,11 @@ module.exports = {
         let shasum = crypto.createHash('sha1');
         shasum.update('' + word + '');
         return shasum.digest('hex');
+    },
+    /**
+     * @return {string}
+     */
+    GenerateVA: function () {
+        return Math.random().toString(36).substr(2, 5);
     }
 };
