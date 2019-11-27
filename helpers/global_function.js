@@ -249,5 +249,22 @@ module.exports = {
                 connection.release();
             });
         }
+    },
+    GenerateNasabahId: function () {
+        return new Promise(resolve => {
+            let nasabahId = '';
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'SELECT GENERATE_NASABAH_ID(0, 8) AS nasabah_id';
+                connection.query(sqlString, function (err, rows) {
+                    if (!err && rows.length > 0) {
+                        nasabahId = rows[0].nasabah_id;
+                    } else {
+                        nasabahId = 0;
+                    }
+                    resolve(nasabahId);
+                });
+                connection.release();
+            });
+        });
     }
 };
