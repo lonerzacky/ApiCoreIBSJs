@@ -323,7 +323,7 @@ module.exports = {
                         let infoInquiry = {
                             account_number: rows[0].no_rekening,
                             customer_name: rows[0].nama_nasabah,
-                            biological_mothers_name: rows[0].nama_ibu_kandung,
+                            mothers_name: rows[0].nama_ibu_kandung,
                             address: rows[0].alamat,
                             gender: rows[0].jenis_kelamin,
                             place_of_birth: rows[0].tempatlahir,

@@ -113,7 +113,7 @@ module.exports = {
                     let respLogin = [{
                         customer_id: rows[0].nasabah_id,
                         customer_name: rows[0].nama_nasabah,
-                        biological_mothers_name: rows[0].nama_ibu_kandung,
+                        mothers_name: rows[0].nama_ibu_kandung,
                         address: rows[0].alamat,
                         date_of_birth: rows[0].tgllahir,
                         id_number: rows[0].no_id,
