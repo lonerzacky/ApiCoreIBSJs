@@ -266,5 +266,46 @@ module.exports = {
                 connection.release();
             });
         });
+    },
+    GetCountCoreProduct: async function () {
+        let defaultProduct = await module.exports.GetSysMySysIdValue('TAB_DEFAULT_PRODUK');
+        return new Promise(resolve => {
+            let arrProduct = defaultProduct.split(";").map(function (val) {
+                return +val + 1;
+            });
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'SELECT kode_produk,jenis FROM tab_produk WHERE kode_produk IN (' + arrProduct + ')';
+                connection.query(sqlString, function (err, rows) {
+                    if (!err && rows.length > 0) {
+                        resolve(rows);
+                    } else {
+                        resolve('');
+                    }
+                });
+                connection.release();
+            });
+        });
+
+    },
+    GenerateNoRekening: async function (kode_kantor, kode_produk) {
+        let template = await module.exports.GetSysMySysIdValue('TAB_TEMPLATE_NO_REKENING');
+        let nStart;
+        template = template.replace('###', kode_kantor);
+        template = template.replace('XXX', kode_produk);
+        nStart = template.indexOf('[');
+        template.indexOf(']');
+        template = template.replace("[", "");
+        template = template.replace("]", "");
+        let cLeftTemplate = template.substring(0, nStart);
+        let nPad = template.length - (nStart);
+        return new Promise(resolve => {
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'SELECT GENERATE_NOREK_SIMPANAN("' + cLeftTemplate + '"," ' + nPad + '") NO_REKENING';
+                connection.query(sqlString, function (err, rows) {
+                    resolve(rows[0].NO_REKENING);
+                });
+                connection.release();
+            });
+        });
     }
 };
