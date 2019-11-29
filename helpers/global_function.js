@@ -274,7 +274,9 @@ module.exports = {
                 return +val + 1;
             });
             pool.getConnection(function (err, connection) {
-                let sqlString = 'SELECT kode_produk,jenis FROM tab_produk WHERE kode_produk IN (' + arrProduct + ')';
+                let sqlString = 'SELECT kode_produk,jenis,setoran_minimum_default,saldo_minimum_default,' +
+                    'suku_bunga_default,pph_default,setoran_pertama ' +
+                    'FROM tab_produk WHERE kode_produk IN (' + arrProduct + ')';
                 connection.query(sqlString, function (err, rows) {
                     if (!err && rows.length > 0) {
                         resolve(rows);
