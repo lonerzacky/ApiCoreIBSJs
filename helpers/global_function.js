@@ -271,11 +271,11 @@ module.exports = {
         let defaultProduct = await module.exports.GetSysMySysIdValue('TAB_DEFAULT_PRODUK');
         return new Promise(resolve => {
             let arrProduct = defaultProduct.split(";").map(function (val) {
-                return +val + 1;
+                return +val;
             });
             pool.getConnection(function (err, connection) {
                 let sqlString = 'SELECT kode_produk,jenis,setoran_minimum_default,saldo_minimum_default,' +
-                    'suku_bunga_default,pph_default,setoran_pertama ' +
+                    'suku_bunga_default,pph_default,setoran_pertama_default ' +
                     'FROM tab_produk WHERE kode_produk IN (' + arrProduct + ')';
                 connection.query(sqlString, function (err, rows) {
                     if (!err && rows.length > 0) {

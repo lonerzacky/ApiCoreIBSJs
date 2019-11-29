@@ -137,7 +137,7 @@ module.exports = {
         } catch (err) {
             global_function.DeleteTrans('tabung', 'nasabah_id', nasabah_id);
             global_function.DeleteTrans('nasabah', 'nasabah_id', nasabah_id);
-            return res.send(utility.GiveResponse('00', "FAILED REGISTRATION,CREATE CUSTOMER FAILED", err))
+            return res.send(utility.GiveResponse('00', "FAILED REGISTRATION,CREATE CUSTOMER FAILED", err.message))
         }
     }
 };
