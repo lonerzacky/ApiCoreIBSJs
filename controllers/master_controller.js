@@ -71,7 +71,7 @@ module.exports = {
             let sqlString = `INSERT INTO nasabah (nasabah_id,tgl_register, nama_nasabah, tempatlahir, tgllahir,
                 jenis_kelamin, kode_agama, alamat, kota_kab, telpon,nama_ibu_kandung, username,password) 
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-            let result = await pool_promisify.query(sqlString, [nasabah_id,tgl_register, params.customer_name, params.place_of_birth, params.date_of_birth,
+            let result = await pool_promisify.query(sqlString, [nasabah_id, tgl_register, params.customer_name, params.place_of_birth, params.date_of_birth,
                 params.gender, params.religion, params.address, params.city, params.phone, params.mothers_name,
                 params.username, utility.EncodeSHA1(params.password)]);
             if (result) {
@@ -114,15 +114,16 @@ module.exports = {
                     }
                 }
                 if (errors === 0) {
-                    let respData = [{
-                        'customer_id': nasabah_id
-                    }];
                     let tab_kode_produk_tab_utama = await global_function.GetSysMySysIdValue('TAB_KODE_PRODUK_TABUNGAN_UTAMA');
                     sqlString = `SELECT no_rekening FROM tabung WHERE kode_produk = ? AND nasabah_id = ?`;
                     let resultGetTabUmum = await pool_promisify.query(sqlString, [tab_kode_produk_tab_utama, nasabah_id]);
                     let norek_tab_program = resultGetTabUmum[0].no_rekening;
                     sqlString = `UPDATE tabung set norek_tab_program=? WHERE nasabah_id=? AND kode_jenis='20'`;
                     await pool_promisify.query(sqlString, [norek_tab_program, nasabah_id]);
+                    let respData = [{
+                        'customer_id': nasabah_id,
+                        'primary_account_number': norek_tab_program
+                    }];
                     responseBody = utility.GiveResponse('00', "SUCCESSFULLY REGISTRATION", respData);
                 } else {
                     global_function.DeleteTrans('tabung', 'nasabah_id', nasabah_id);
