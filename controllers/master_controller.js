@@ -67,10 +67,11 @@ module.exports = {
             return res.send(utility.GiveResponse('00', "FAILED GENERATE CUSTOMER ID"));
         }
         try {
-            let sqlString = `INSERT INTO nasabah (nasabah_id, nama_nasabah, tempatlahir, tgllahir,
+            let tgl_register = moment().format('YYYY-MM-DD');
+            let sqlString = `INSERT INTO nasabah (nasabah_id,tgl_register, nama_nasabah, tempatlahir, tgllahir,
                 jenis_kelamin, kode_agama, alamat, kota_kab, telpon,nama_ibu_kandung, username,password) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`;
-            let result = await pool_promisify.query(sqlString, [nasabah_id, params.customer_name, params.place_of_birth, params.date_of_birth,
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+            let result = await pool_promisify.query(sqlString, [nasabah_id,tgl_register, params.customer_name, params.place_of_birth, params.date_of_birth,
                 params.gender, params.religion, params.address, params.city, params.phone, params.mothers_name,
                 params.username, utility.EncodeSHA1(params.password)]);
             if (result) {
@@ -97,7 +98,6 @@ module.exports = {
                         jkw = '12';
                         setoran_awal = element.setoran_pertama;
                     }
-                    let tgl_register = moment().format('YYYY-MM-DD');
                     sqlString = `INSERT INTO tabung(no_rekening,nasabah_id,tgl_register,verifikasi,status,
                         kode_kantor,kode_integrasi,kode_produk,kode_jenis,no_rekening_virtual,minimum,setoran_minimum,
                         setoran_per_bln,periode_setoran,satuan_waktu_setoran,tgl_jt,jkw,setoran_awal,
