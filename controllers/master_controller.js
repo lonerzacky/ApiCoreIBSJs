@@ -1,4 +1,5 @@
 const pool_promisify = require('../config/pooling_promisify');
+const pool = require('../config/pooling');
 const utility = require("../helpers/utility");
 const global_function = require('../helpers/global_function');
 const apicode = require('../constants/apicode');
@@ -140,5 +141,34 @@ module.exports = {
             global_function.DeleteTrans('nasabah', 'nasabah_id', nasabah_id);
             return res.send(utility.GiveResponse('00', "FAILED REGISTRATION,CREATE CUSTOMER FAILED", err.message))
         }
-    }
+    },
+    HandlerCekStatusBatchNasabah: async function (req, res) {
+        let params = req.body;
+        let responseBody = "";
+        let resperrParam = '';
+        let errParam = 0;
+        if (params.request_id === '' || !params.request_id) {
+            resperrParam += 'MISSING REQUEST ID PARAMETER\n';
+            errParam++;
+        }
+        if (errParam > 0) {
+            return res.send(utility.GiveResponse('00', resperrParam));
+        }
+        pool.getConnection(function (err, connection) {
+            let sqlString = 'SELECT type,uuid,tgl_trans,jam_trans,response,status FROM log_batch WHERE uuid=?';
+            connection.query(sqlString, [params.request_id], function (err, rows) {
+                if (err) {
+                    console.error(`GET STATUS BATCH CUSTOMER FAILED : ${err.message}`);
+                    responseBody = utility.GiveResponse("01", "GET STATUS BATCH CUSTOMER FAILED");
+                    global_function.InsertLogService(apicode.apiCodeCekStatusBatchNasabah, params, responseBody, '001', process.env.APIUSERID);
+                    return res.send(responseBody);
+                } else {
+                    responseBody = utility.GiveResponse("00", "SUCCESSFULLY GET STATUS BATCH CUSTOMER", rows);
+                    global_function.InsertLogService(apicode.apiCodeCekStatusBatchNasabah, params, responseBody, '001', process.env.APIUSERID);
+                    return res.send(responseBody);
+                }
+            });
+            connection.release();
+        });
+    },
 };

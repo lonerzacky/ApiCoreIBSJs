@@ -12,5 +12,6 @@ module.exports = Object.freeze({
     apiCodeLoginMobileApp: '201004',
     apiCodeInquiryRepostingJurnal: '201005',
     apiCodeRepostingJurnal: '201006',
-    apiCodeRegistrasiNasabah: '301001'
+    apiCodeRegistrasiNasabah: '301001',
+    apiCodeCekStatusBatchNasabah: '301002',
 });

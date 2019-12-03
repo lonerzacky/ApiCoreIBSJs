@@ -52,6 +52,8 @@ app.group('/api/' + process.env.PREFIXVER + '', (router) => {
     // noinspection JSUnresolvedFunction
     router.post('/' + apicode.apiCodeRegistrasiNasabah + '', master_controller.HandlerRegistrasiNasabah);
     // noinspection JSUnresolvedFunction
+    router.post('/' + apicode.apiCodeCekStatusBatchNasabah + '', master_controller.HandlerCekStatusBatchNasabah);
+    // noinspection JSUnresolvedFunction
     router.post('/' + apicode.apiCodeForwardingPayment + '', tabungan_controller.HandlerForwardingPayment);
     router.all('*', security.MiddlewareVerifyJWTToken);
     router.use('/', routes);
