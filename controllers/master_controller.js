@@ -155,7 +155,7 @@ module.exports = {
             return res.send(utility.GiveResponse('00', resperrParam));
         }
         pool.getConnection(function (err, connection) {
-            let sqlString = 'SELECT type,uuid,tgl_trans,jam_trans,response,status FROM log_batch WHERE uuid=?';
+            let sqlString = 'SELECT type,uuid,tgl_trans,jam_trans,response,status,time_start,time_end FROM log_batch WHERE uuid=?';
             connection.query(sqlString, [params.request_id], function (err, rows) {
                 if (err) {
                     console.error(`GET STATUS BATCH CUSTOMER FAILED : ${err.message}`);
@@ -169,15 +169,21 @@ module.exports = {
                         if (statusResponse === 1) {
                             statusResponse = 'success';
                         } else if (statusResponse === 2) {
-                            statusResponse = 'error'
+                            statusResponse = 'error';
+                        } else if (statusResponse === 0) {
+                            statusResponse = 'processing';
                         }
+                        let time_start = moment(row.time_start,'YYYY-MM-DD HH:mm:ss');
+                        let time_end = moment(row.time_end,'YYYY-MM-DD HH:mm:ss');
+                        let minutes = time_end.diff(time_start, 'minutes', true);
                         let responseArray = {
                             type: row.type,
                             request_id: row.uuid,
                             date_transaction: moment(row.tgl_trans).format('DD-MM-YYYY'),
                             hour_transaction: row.jam_trans,
                             response: JSON.parse(row.response),
-                            status: statusResponse
+                            status: statusResponse,
+                            minutes_duration: minutes.toFixed(2)
                         };
                         arrResponse.push(responseArray);
                     }
