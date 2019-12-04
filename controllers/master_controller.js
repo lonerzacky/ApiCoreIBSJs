@@ -162,6 +162,10 @@ module.exports = {
                     responseBody = utility.GiveResponse("01", "GET STATUS BATCH CUSTOMER FAILED");
                     return res.send(responseBody);
                 } else {
+                    if (rows.length === 0) {
+                        responseBody = utility.GiveResponse("01", "LOG BATCH NOT FOUND");
+                        return res.send(responseBody);
+                    }
                     let arrResponse = [];
                     for (let i = 0; i < rows.length; i++) {
                         let row = rows[i];
@@ -173,8 +177,8 @@ module.exports = {
                         } else if (statusResponse === 0) {
                             statusResponse = 'processing';
                         }
-                        let time_start = moment(row.time_start,'YYYY-MM-DD HH:mm:ss');
-                        let time_end = moment(row.time_end,'YYYY-MM-DD HH:mm:ss');
+                        let time_start = moment(row.time_start, 'YYYY-MM-DD HH:mm:ss');
+                        let time_end = moment(row.time_end, 'YYYY-MM-DD HH:mm:ss');
                         let minutes = time_end.diff(time_start, 'minutes', true);
                         let responseArray = {
                             type: row.type,
