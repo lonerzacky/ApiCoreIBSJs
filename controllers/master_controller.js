@@ -160,11 +160,28 @@ module.exports = {
                 if (err) {
                     console.error(`GET STATUS BATCH CUSTOMER FAILED : ${err.message}`);
                     responseBody = utility.GiveResponse("01", "GET STATUS BATCH CUSTOMER FAILED");
-                    global_function.InsertLogService(apicode.apiCodeCekStatusBatchNasabah, params, responseBody, '001', process.env.APIUSERID);
                     return res.send(responseBody);
                 } else {
-                    responseBody = utility.GiveResponse("00", "SUCCESSFULLY GET STATUS BATCH CUSTOMER", rows);
-                    global_function.InsertLogService(apicode.apiCodeCekStatusBatchNasabah, params, responseBody, '001', process.env.APIUSERID);
+                    let arrResponse = [];
+                    for (let i = 0; i < rows.length; i++) {
+                        let row = rows[i];
+                        let statusResponse = row.status;
+                        if (statusResponse === 1) {
+                            statusResponse = 'success';
+                        } else if (statusResponse === 2) {
+                            statusResponse = 'error'
+                        }
+                        let responseArray = {
+                            type: row.type,
+                            request_id: row.uuid,
+                            date_transaction: moment(row.tgl_trans).format('DD-MM-YYYY'),
+                            hour_transaction: row.jam_trans,
+                            response: JSON.parse(row.response),
+                            status: statusResponse
+                        };
+                        arrResponse.push(responseArray);
+                    }
+                    responseBody = utility.GiveResponse("00", "SUCCESSFULLY GET STATUS BATCH CUSTOMER", arrResponse);
                     return res.send(responseBody);
                 }
             });
