@@ -60,12 +60,12 @@ module.exports = {
             errParam++;
         }
         if (errParam > 0) {
-            return res.send(utility.GiveResponse('00', resperrParam));
+            return res.send(utility.GiveResponse('01', resperrParam));
         }
 
         let nasabah_id = await global_function.GenerateNasabahId();
         if (nasabah_id === '0') {
-            return res.send(utility.GiveResponse('00', "FAILED GENERATE CUSTOMER ID"));
+            return res.send(utility.GiveResponse('01', "FAILED GENERATE CUSTOMER ID"));
         }
         try {
             let tgl_register = moment().format('YYYY-MM-DD');
@@ -132,14 +132,14 @@ module.exports = {
                     responseBody = utility.GiveResponse('01', "FAILED REGISTRATION,CREATE ACCOUNT FAILED");
                 }
             } else {
-                responseBody = utility.GiveResponse('00', "FAILED REGISTRATION,CREATE CUSTOMER FAILED");
+                responseBody = utility.GiveResponse('01', "FAILED REGISTRATION,CREATE CUSTOMER FAILED");
             }
             global_function.InsertLogService(apicode.apiCodeRegistrasiNasabah, params, responseBody, params.client_id, process.env.APIUSERID);
             return res.send(responseBody);
         } catch (err) {
             global_function.DeleteTrans('tabung', 'nasabah_id', nasabah_id);
             global_function.DeleteTrans('nasabah', 'nasabah_id', nasabah_id);
-            return res.send(utility.GiveResponse('00', "FAILED REGISTRATION,CREATE CUSTOMER FAILED", err.message))
+            return res.send(utility.GiveResponse('01', "FAILED REGISTRATION,CREATE CUSTOMER FAILED", err.message))
         }
     },
     HandlerCekStatusBatchNasabah: async function (req, res) {
