@@ -269,7 +269,7 @@ module.exports = {
         }
         let saldoAkhir = await saldo.GetSaldoAkhirTabungan(params.account_number, moment().format('YYYYMMDD'));
         pool.getConnection(function (err, connection) {
-            let sqlString = `SELECT no_rekening,nama_nasabah,kode_integrasi FROM tabung
+            let sqlString = `SELECT no_rekening,nama_nasabah,kode_integrasi,no_rekening_virtual FROM tabung
             LEFT JOIN nasabah ON tabung.nasabah_id = nasabah.nasabah_id WHERE tabung.kode_kantor = ?  AND (
             tabung.STATUS NOT IN ( 2 )) AND tabung.verifikasi > 0  AND no_rekening = ? LIMIT 1`;
             connection.query(sqlString,
@@ -278,11 +278,15 @@ module.exports = {
                         console.error(`SELECT DATA ERROR: ${err.message}`);
                         responseBody = utility.GiveResponse("01", "INQUIRY BALANCE FAILED");
                     } else {
+                        if (saldoAkhir !== null) {
+                            saldoAkhir = saldoAkhir.toString();
+                        }
                         let infoInquiry = {
                             account_number: rows[0].no_rekening,
+                            convertion_id: rows[0].no_rekening_virtual,
                             customer_name: rows[0].nama_nasabah,
                             integration_code: rows[0].kode_integrasi,
-                            balance: saldoAkhir.toString()
+                            balance: saldoAkhir
                         };
                         responseBody = utility.GiveResponse("00", "INQUIRY BALANCE SUCCESS", infoInquiry);
                     }
@@ -309,7 +313,7 @@ module.exports = {
         pool.getConnection(function (err, connection) {
             let sqlString = `SELECT no_rekening,nama_nasabah,nama_ibu_kandung,alamat,jenis_kelamin,
             tempatlahir,tgllahir,tabung.tgl_register,no_id,tabung.no_alternatif,
-            tab_produk.kode_produk,tab_produk.deskripsi_produk,tabung.kode_integrasi FROM tabung
+            tab_produk.kode_produk,tab_produk.deskripsi_produk,tabung.kode_integrasi,no_rekening_virtual FROM tabung
             LEFT JOIN nasabah ON tabung.nasabah_id = nasabah.nasabah_id 
             LEFT JOIN tab_produk ON tabung.kode_produk = tab_produk.kode_produk
             WHERE tabung.kode_kantor = ?  AND (
@@ -320,6 +324,9 @@ module.exports = {
                         console.error(`SELECT DATA ERROR: ${err.message}`);
                         responseBody = utility.GiveResponse("01", "INQUIRY REKENING TABUNGAN GAGAL");
                     } else {
+                        if (saldoAkhir !== null) {
+                            saldoAkhir = saldoAkhir.toString()
+                        }
                         let infoInquiry = {
                             account_number: rows[0].no_rekening,
                             customer_name: rows[0].nama_nasabah,
@@ -334,7 +341,8 @@ module.exports = {
                             product_code: rows[0].kode_produk,
                             product_description: rows[0].deskripsi_produk,
                             integration_code: rows[0].kode_integrasi,
-                            balance: saldoAkhir.toString()
+                            convertion_id: rows[0].no_rekening_virtual,
+                            balance: saldoAkhir
                         };
                         responseBody = utility.GiveResponse("00", "INQUIRY BALANCE SUCCESS", infoInquiry);
                     }
