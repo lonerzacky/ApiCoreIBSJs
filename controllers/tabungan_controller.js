@@ -482,5 +482,74 @@ module.exports = {
         } else {
             return res.send(utility.GiveResponse('00', "TRANSACTION SUCCESS"));
         }
+    },
+    HandlerGetTagihanTabProgram: async function (req, res) {
+        let params = req.body;
+        let responseBody = '';
+        let resperrParam = '';
+        let errParam = 0;
+        if (params.client_id === '' || !params.client_id) {
+            resperrParam += 'MISSING CLIENT ID PARAMETER\n';
+            errParam++;
+        }
+        if (params.customer_id === '' || !params.customer_id) {
+            resperrParam += 'MISSING CUSTOMER ID PARAMETER\n';
+            errParam++;
+        }
+        if (params.date_transaction === '' || !params.date_transaction) {
+            resperrParam += 'MISSING TRANSACTION DATE PARAMETER\n';
+            errParam++;
+        }
+        if (errParam > 0) {
+            return res.send(utility.GiveResponse('01', resperrParam));
+        }
+
+        pool.getConnection(function (err, connection) {
+            let sqlString = `select nasabah_id,
+            kode_produk,
+            setoran_per_bln,
+            jkw,
+            COALESCE((select sum(if(floor(MY_KODE_TRANS/100)=1,pokok,0))-sum(if(floor(MY_KODE_TRANS/100)=2,pokok,0)) 
+            from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening and kode_trans not in (101,201)),0) saldo ,
+            DATEDIFF(date(now()),tgl_register)*setoran_per_bln saldo_seharusnya , 
+            (DATEDIFF(date(now()),tgl_register)*setoran_per_bln)-COALESCE((select sum(if(floor(MY_KODE_TRANS/100)=1,pokok,0))-sum(if(floor(MY_KODE_TRANS/100)=2,pokok,0)) 
+            from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening),0) tunggakan
+            from tabung t 
+            where kode_jenis=20
+            and nasabah_id=?
+            order by nasabah_id,kode_produk`;
+            connection.query(sqlString,
+                [params.date_transaction, params.date_transaction, params.customer_id], function (err, rows) {
+                    if (err) {
+                        console.error(`SELECT DATA ERROR: ${err.message}`);
+                        responseBody = utility.GiveResponse("01", "INQUIRY BILLS FAILED");
+                    } else {
+                        if (rows.length > 0) {
+                            let arrInfo = [];
+                            for (let i = 0; i < rows.length; i++) {
+                                let row = rows[i];
+                                let responseArray = {
+                                    customer_id: row.nasabah_id,
+                                    product_code: row.kode_produk,
+                                    deposit_monthly: row.setoran_per_bln,
+                                    time_period: row.jkw,
+                                    balance: row.saldo,
+                                    supposed_balance: row.saldo_seharusnya,
+                                    arrears: row.tunggakan,
+                                };
+                                arrInfo.push(responseArray);
+                            }
+                            responseBody = utility.GiveResponse("00", "INQUIRY BILLS SUCCESS", arrInfo);
+                        } else {
+                            responseBody = utility.GiveResponse("01", "INQUIRY BILLS FAILED : DATA NOT FOUND");
+                        }
+                    }
+                    global_function.InsertLogService(apicode.apiCodeGetTagihanTabProgram, params, responseBody, params.client_id, process.env.APIUSERID);
+                    return res.send(responseBody);
+                });
+            connection.release();
+        });
+
+
     }
 };

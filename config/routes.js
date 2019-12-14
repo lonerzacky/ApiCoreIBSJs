@@ -30,4 +30,6 @@ routes.post('/' + apicode.apiCodeCekStatusTransaksi + '', global_controller.Hand
 routes.post('/' + apicode.apiCodeInquiryRepostingJurnal + '', reposting_jurnal_controller.HandlerInquiryRepostingJurnal);
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeRepostingJurnal + '', reposting_jurnal_controller.HandlerRepostingJurnal);
+// noinspection JSUnresolvedFunction
+routes.post('/' + apicode.apiCodeGetTagihanTabProgram + '', tabungan_controller.HandlerGetTagihanTabProgram);
 module.exports = routes;
