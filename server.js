@@ -15,7 +15,9 @@ const master_controller = require('../controllers/master_controller');
 const apicode = require('../constants/apicode');
 const morgan = require('morgan');
 const express = require('express');
+const cors = require('cors');
 const app = express();
+app.use(cors());
 // noinspection NpmUsedModulesInstalled
 const routes = require('config/routes');
 // noinspection DuplicatedCode
