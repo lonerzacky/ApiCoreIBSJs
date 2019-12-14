@@ -505,15 +505,15 @@ module.exports = {
         }
 
         pool.getConnection(function (err, connection) {
-            let sqlString = `select nasabah_id,
-            kode_produk,
-            setoran_per_bln,
-            jkw,
+            let sqlString = `select no_rekening account_number,
+            (select deskripsi_produk from tab_produk where kode_produk=t.kode_produk) billing_type,
+            setoran_per_bln monthly_payment,
+            jkw time_period,
             COALESCE((select sum(if(floor(MY_KODE_TRANS/100)=1,pokok,0))-sum(if(floor(MY_KODE_TRANS/100)=2,pokok,0)) 
-            from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening and kode_trans not in (101,201)),0) saldo ,
-            DATEDIFF(date(now()),tgl_register)*setoran_per_bln saldo_seharusnya , 
+            from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening and kode_trans not in (101,201)),0) total_paid,
+            DATEDIFF(date(now()),tgl_register)*setoran_per_bln billing_info, 
             (DATEDIFF(date(now()),tgl_register)*setoran_per_bln)-COALESCE((select sum(if(floor(MY_KODE_TRANS/100)=1,pokok,0))-sum(if(floor(MY_KODE_TRANS/100)=2,pokok,0)) 
-            from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening),0) tunggakan
+            from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening),0) bill_arrear
             from tabung t 
             where kode_jenis=20
             and nasabah_id=?
@@ -525,21 +525,7 @@ module.exports = {
                         responseBody = utility.GiveResponse("01", "INQUIRY BILLS FAILED");
                     } else {
                         if (rows.length > 0) {
-                            let arrInfo = [];
-                            for (let i = 0; i < rows.length; i++) {
-                                let row = rows[i];
-                                let responseArray = {
-                                    customer_id: row.nasabah_id,
-                                    product_code: row.kode_produk,
-                                    deposit_monthly: row.setoran_per_bln,
-                                    time_period: row.jkw,
-                                    balance: row.saldo,
-                                    supposed_balance: row.saldo_seharusnya,
-                                    arrears: row.tunggakan,
-                                };
-                                arrInfo.push(responseArray);
-                            }
-                            responseBody = utility.GiveResponse("00", "INQUIRY BILLS SUCCESS", arrInfo);
+                            responseBody = utility.GiveResponse("00", "INQUIRY BILLS SUCCESS", rows);
                         } else {
                             responseBody = utility.GiveResponse("01", "INQUIRY BILLS FAILED : DATA NOT FOUND");
                         }
