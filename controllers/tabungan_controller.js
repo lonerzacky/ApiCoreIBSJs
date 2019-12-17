@@ -7,6 +7,7 @@ const crudtabung = require('../crud/crudtabung');
 const apicode = require('../constants/apicode');
 const kodetrans = require('../constants/kodetrans');
 const saldo = require('../helpers/saldo');
+const ip = require('ip');
 
 module.exports = {
     HandlerTransTabungan: async function (req, res) {
@@ -447,6 +448,7 @@ module.exports = {
     },
     HandlerForwardingPayment: async function (req, res) {
         let params = req.body;
+        let responseBody = "";
         let resperrParam = '';
         let errParam = 0;
         if (params.txid === '' || !params.txid) {
@@ -480,7 +482,116 @@ module.exports = {
         if (errParam > 0) {
             return res.send(utility.GiveResponse('01', resperrParam));
         } else {
-            return res.send(utility.GiveResponse('00', "TRANSACTION SUCCESS"));
+            const kode_trans = '190';
+            const my_kode_trans = '100';
+            const tgl_trans = moment().format('YYYY-MM-DD');
+            const jam_trans = moment().format('HH:mm:ss');
+            const ip_add = ip.address();
+            let kode_kantor = await global_function.GetValByKeyValString('kode_kantor', 'tabung', 'no_rekening_virtual', params.oy_txid);
+            let no_rekening = await global_function.GetValByKeyValString('no_rekening', 'tabung', 'no_rekening_virtual', params.oy_txid);
+            const kuitansi_id = await global_function.GenerateKuitansiId(kode_kantor, tgl_trans);
+            let kodePerkCoa = await global_function.GetSysMySysIdValue('TAB_KODE_PERK_VA_OY');
+            let settingKuitansi = await global_function.GetSysMySysIdValue('APP_TEMPLATE_NO_KUITANSI');
+            const kuitansi = await global_function.GenerateKuitansi(kode_kantor, tgl_trans, settingKuitansi);
+            if (kodePerkCoa === '') {
+                return res.send(utility.GiveResponse("00", "OVERBOOKING ACCOUNT CODE IS NOT DEFINED"));
+            } else {
+                let existKodePerkOb = await global_function.GetValByKeyValString('kode_perk', 'perkiraan', 'kode_perk', kodePerkCoa);
+                if (existKodePerkOb === '') {
+                    return res.send(utility.GiveResponse("01", "OVERBOOKING ACCOUNT CODE IS NOT FOUND"));
+                }
+            }
+            let flagMinus = await global_function.GetValByKeyValString('flag_minus', 'perkiraan', 'kode_perk', kodePerkCoa);
+            let saldoPerk = await global_function.GetAccSaldoPerkDetail(kodePerkCoa, kode_kantor, moment().format('YYYY-MM-DD'));
+            if (kodePerkCoa.substring(0, 1) === '2' || kodePerkCoa.substring(0, 1) === '4') {
+                if (flagMinus !== '1') {
+                    if (saldoPerk < parseFloat(params.nominal)) {
+                        return res.send(utility.GiveResponse("01", "INSUFFICIENT [" + kodePerkCoa + "] ACCOUNT CODE"));
+                    }
+                }
+            }
+            let kode_integrasi = await global_function.GetValByKeyValString('kode_integrasi', 'tabung', 'no_rekening', no_rekening);
+            if (kode_integrasi === '') {
+                responseBody = utility.GiveResponse("01", "SAVINGS INTEGRATION CODES WAS NOT FOUND");
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
+                return res.send(responseBody);
+            }
+            let status = await global_function.GetValByKeyValString('status', 'tabung', 'no_rekening', no_rekening);
+            if (status === '3' || status === '4') {
+                responseBody = utility.GiveResponse("01", "TRANSACTION DENIED! ACCOUNT NUMBER IS BLOCKED");
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
+                return res.send(responseBody);
+            }
+            let sandiTrans = await global_function.GetValByKeyValString('sandi_trans_default', 'tab_kode_trans', 'kode_trans', kode_trans);
+            let kodePerkSimpanan = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', kode_integrasi);
+            if (kodePerkSimpanan === '') {
+                responseBody = utility.GiveResponse("01", "LOAD SAVINGS INTEGRATION FAILED, PLEASE SETTING SAVINGS INTEGRATION IMMEDIATELY");
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
+                return res.send(responseBody);
+            }
+            if (await global_function.IsKuitansiExist('kuitansi_id', 'tabtrans', 'kuitansi_id', kuitansi_id, 'no_rekening', no_rekening)) {
+                return res.send(utility.GiveResponse("01", "DUPLICATE " + kuitansi_id + " TRX ID"));
+            }
+            let transId = await global_function.GenerateTransID(process.env.APIUSERID);
+            if (transId === 0) {
+                responseBody = utility.GiveResponse("01", "GENERATE TRANS ID FAILED, PLEASE TRY AGAIN");
+                global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
+                return res.send(responseBody);
+            }
+            pool.getConnection(function (err, connection) {
+                let sqlString = `INSERT INTO tabtrans(tabtrans_id,no_rekening,kode_kantor,kuitansi,tgl_trans,
+                        jam,pokok,userid,ip_add,kode_trans,my_kode_trans,keterangan,trans_id_source,
+                        tob,kuitansi_id,sandi_trans,verifikasi,no_rekening_aba,no_rekening_vs,transfer)
+                        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+                connection.query(sqlString,
+                    [transId, no_rekening, kode_kantor, kuitansi,
+                        tgl_trans, jam_trans, params.nominal, process.env.APIUSERID,
+                        ip_add, kode_trans, my_kode_trans, params.note,
+                        '', 'O', kuitansi_id, sandiTrans,
+                        '1', '', '', "1"], function (err) {
+                        if (err) {
+                            console.error(`INSERT TABTRANS ERROR: ${err.message}`);
+                            responseBody = utility.GiveResponse("01", "SAVING TRANSACTION FAILED");
+                        } else {
+                            let respData = {
+                                'trans_id': transId,
+                                'trx_ref_id': kuitansi_id
+                            };
+                            tabtrans.tabtrans_id = transId;
+                            tabtrans.no_rekening = no_rekening;
+                            tabtrans.kode_kantor = kode_kantor;
+                            tabtrans.kuitansi = kuitansi;
+                            tabtrans.no_rekening_vs = '';
+                            tabtrans.user_id = process.env.APIUSERID;
+                            tabtrans.pokok = params.nominal;
+                            tabtrans.tgl_trans = tgl_trans;
+                            tabtrans.jam = jam_trans;
+                            tabtrans.ip_add = ip_add;
+                            tabtrans.kode_trans = kode_trans;
+                            tabtrans.keterangan = params.note;
+                            tabtrans.kuitansi_id = kuitansi_id;
+                            tabtrans.sandi_trans = sandiTrans;
+                            tabtrans.my_kode_trans = my_kode_trans;
+                            tabtrans.verifikasi = '1';
+                            tabtrans.kode_integrasi = kode_integrasi;
+                            tabtrans.kode_integrasi_vs = '';
+                            tabtrans.kode_perk_ob = kodePerkCoa;
+                            tabtrans.no_rekening_aba = '';
+                            let result = crudtabung.AddTransTabungan(tabtrans);
+                            if (result) {
+                                saldo.RepostingSaldoTabungan(no_rekening, moment().format('YYYY-MM-DD'));
+                                responseBody = utility.GiveResponse("00", "SAVING TRANSACTION SUCCESS", respData);
+                            } else {
+                                responseBody = utility.GiveResponse("01", "SAVING TRANSACTION FAILED");
+                                global_function.DeleteTrans('transaksi_master', 'trans_id_source', transId);
+                                global_function.DeleteTrans('tabtrans', 'tabtrans_id', transId);
+                            }
+                        }
+                        global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
+                        return res.send(responseBody);
+                    });
+                connection.release();
+            });
         }
     },
     HandlerGetTagihanTabProgram: async function (req, res) {

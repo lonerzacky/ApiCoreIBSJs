@@ -1,6 +1,7 @@
 const moment = require('moment');
 const pool = require('../config/pooling');
 const poolSys = require('../config/pooling_sys');
+const utility = require("../helpers/utility");
 
 // noinspection JSUnresolvedVariable
 module.exports = {
@@ -262,6 +263,41 @@ module.exports = {
                         nasabahId = 0;
                     }
                     resolve(nasabahId);
+                });
+                connection.release();
+            });
+        });
+    },
+    GenerateKuitansiId: function (kode_kantor, tgl_trans) {
+        return new Promise(resolve => {
+            let kuitansiId = '';
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'SELECT GENERATE_KUITANSI(' + kode_kantor + ',' + process.env.APIUSERID + ',' + tgl_trans + ') kuitansi ';
+                connection.query(sqlString, function (err, rows) {
+                    if (!err && rows.length > 0) {
+                        kuitansiId = rows[0].kuitansi;
+                    } else {
+                        kuitansiId = 0;
+                    }
+                    resolve(kuitansiId);
+                });
+                connection.release();
+            });
+        });
+    },
+    GenerateKuitansi: function (kode_kantor, tgl_trans, setting) {
+        return new Promise(resolve => {
+            let kuitansi = '';
+            pool.getConnection(function (err, connection) {
+                let sqlString = 'SELECT GENERATE_KUITANSI_CLIENT(' + kode_kantor + ',' + tgl_trans + ') no_kuitansi_client';
+                connection.query(sqlString, function (err, rows) {
+                    if (!err && rows.length > 0) {
+                        let kuitansiClient = rows[0].no_kuitansi_client;
+                        kuitansi = utility.KuitansiClient(setting, kode_kantor, kuitansiClient)
+                    } else {
+                        kuitansi = 0;
+                    }
+                    resolve(kuitansi);
                 });
                 connection.release();
             });
