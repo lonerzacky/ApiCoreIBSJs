@@ -78,7 +78,8 @@ module.exports = {
             kodePerkKas = await global_function.GetValByKeyValStringSys('kode_perk_kas', 'sys_daftar_user', 'user_id', tabtrans.user_id);
         } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransTransfer) {
             kodePerkKas = await global_function.GetValByKeyValString('kode_perk_hutang_pokok', 'tab_integrasi', 'kode_integrasi', tabtrans.kode_integrasi_vs);
-        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikCoa) {
+        } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorCoa || tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikCoa
+            || tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorVA) {
             kodePerkKas = tabtrans.kode_perk_ob;
         } else if (tabtrans.kode_trans === kodetrans.tabungan.kodeTransSetorABA || tabtrans.kode_trans === kodetrans.tabungan.kodeTransTarikABA) {
             kodePerkKas = await global_function.GetValByKeyValString('perk_pokok', 'aba_integrasi', 'kode_aba', kodeIntegrasiABA);
