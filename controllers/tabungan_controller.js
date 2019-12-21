@@ -510,7 +510,9 @@ module.exports = {
             if (kodePerkCoa.substring(0, 1) === '2' || kodePerkCoa.substring(0, 1) === '4') {
                 if (flagMinus !== '1') {
                     if (saldoPerk < parseFloat(params.nominal)) {
-                        return res.send(utility.GiveResponse("01", "INSUFFICIENT [" + kodePerkCoa + "] ACCOUNT CODE"));
+                        responseBody = utility.GiveResponse("01", "INSUFFICIENT [" + kodePerkCoa + "] ACCOUNT CODE");
+                        global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
+                        return res.send(responseBody);
                     }
                 }
             }
@@ -590,8 +592,8 @@ module.exports = {
                                 global_function.DeleteTrans('transaksi_master', 'trans_id_source', transId);
                                 global_function.DeleteTrans('tabtrans', 'tabtrans_id', transId);
                             }
+                            global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
                         }
-                        global_function.InsertLogService(apicode.apiCodeTransTabungan, params, responseBody, kode_kantor, process.env.APIUSERID);
                         return res.send(responseBody);
                     });
                 connection.release();
