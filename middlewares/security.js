@@ -12,7 +12,7 @@ module.exports = {
             token = req.cookies.token;
         }
         module.exports.VerifyJWTToken(token).then((decodeToken) => {
-            req.user = decodeToken.data;
+            req.user = decodeToken.partnerId;
             next();
         }).catch((err) => {
             return res.send(utility.GiveResponse("01", "INVALID AUTH TOKEN PROVIDED. [" + err.message.toUpperCase() + "]"));
