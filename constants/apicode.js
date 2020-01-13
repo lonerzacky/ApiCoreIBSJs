@@ -15,4 +15,5 @@ module.exports = Object.freeze({
     apiCodeRepostingJurnal: '201006',
     apiCodeRegistrasiNasabah: '301001',
     apiCodeCekStatusBatchNasabah: '301002',
+    apiCodeGetKodeDati: '301003',
 });

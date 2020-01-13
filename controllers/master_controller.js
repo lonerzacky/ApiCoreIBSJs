@@ -191,4 +191,36 @@ module.exports = {
             connection.release();
         });
     },
+    HandlerGetKodeDati: async function (req, res) {
+        let responseBody = "";
+        pool.getConnection(function (err, connection) {
+            let sqlString = 'SELECT kode_dati,deskripsi_kode_dati FROM css_kode_dati';
+            connection.query(sqlString, function (err, rows) {
+                if (err) {
+                    console.error(`GET STATUS BATCH CUSTOMER FAILED : ${err.message}`);
+                    responseBody = utility.GiveResponse("01", "GET DATI CODE FAILED");
+                    return res.send(responseBody);
+                } else {
+                    if (rows.length === 0) {
+                        responseBody = utility.GiveResponse("01", "DATI CODE NOT FOUND");
+                        return res.send(responseBody);
+                    }
+                    let arrResponse = [];
+                    for (let i = 0; i < rows.length; i++) {
+                        let row = rows[i];
+                        let dati_code = row.kode_dati;
+                        let dati_description = row.deskripsi_kode_dati;
+                        let responseArray = {
+                            dati_code: dati_code,
+                            dati_description: dati_description
+                        };
+                        arrResponse.push(responseArray);
+                    }
+                    responseBody = utility.GiveResponse("00", "SUCCESSFULLY GET DATI CODE", arrResponse);
+                    return res.send(responseBody);
+                }
+            });
+            connection.release();
+        });
+    },
 };
