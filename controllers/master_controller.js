@@ -40,7 +40,7 @@ module.exports = {
             errParam++;
         }
         if (params.dati_code === '' || !params.dati_code) {
-            resperrParam += 'MISSING CITY PARAMETER\n';
+            resperrParam += 'MISSING DATI CODE PARAMETER\n';
             errParam++;
         }
         if (params.phone === '' || !params.phone) {
