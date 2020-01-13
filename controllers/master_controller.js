@@ -51,14 +51,6 @@ module.exports = {
             resperrParam += 'MISSING MOTHERS NAME PARAMETER\n';
             errParam++;
         }
-        if (params.username === '' || !params.username) {
-            resperrParam += 'MISSING USERNAME PARAMETER\n';
-            errParam++;
-        }
-        if (params.password === '' || !params.password) {
-            resperrParam += 'MISSING PASSWORD PARAMETER\n';
-            errParam++;
-        }
         if (errParam > 0) {
             return res.send(utility.GiveResponse('01', resperrParam));
         }
@@ -70,11 +62,10 @@ module.exports = {
         try {
             let tgl_register = moment().format('YYYY-MM-DD');
             let sqlString = `INSERT INTO nasabah (nasabah_id,tgl_register, nama_nasabah, tempatlahir, tgllahir,
-                jenis_kelamin, kode_agama, alamat, kota_kab, telpon,nama_ibu_kandung, username,password) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+                jenis_kelamin, kode_agama, alamat, kota_kab, telpon,nama_ibu_kandung) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)`;
             let result = await pool_promisify.query(sqlString, [nasabah_id, tgl_register, params.customer_name, params.place_of_birth, params.date_of_birth,
-                params.gender, params.religion, params.address, params.city, params.phone, params.mothers_name,
-                params.username, utility.EncodeSHA1(params.password)]);
+                params.gender, params.religion, params.address, params.city, params.phone, params.mothers_name]);
             if (result) {
                 let defaultProduct = await global_function.GetCountCoreProduct();
                 let errors = 0;
