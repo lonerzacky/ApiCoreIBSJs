@@ -39,7 +39,7 @@ module.exports = {
             resperrParam += 'MISSING ADDRESS PARAMETER\n';
             errParam++;
         }
-        if (params.city_code === '' || !params.city_code) {
+        if (params.dati_code === '' || !params.dati_code) {
             resperrParam += 'MISSING CITY PARAMETER\n';
             errParam++;
         }
@@ -65,7 +65,7 @@ module.exports = {
                 jenis_kelamin, kode_agama, alamat, kota_kab, telpon,nama_ibu_kandung) 
                 VALUES (?,?,?,?,?,?,?,?,?,?,?)`;
             let result = await pool_promisify.query(sqlString, [nasabah_id, tgl_register, params.customer_name, params.place_of_birth, params.date_of_birth,
-                params.gender, params.religion, params.address, params.city_code, params.phone, params.mothers_name]);
+                params.gender, params.religion, params.address, params.dati_code, params.phone, params.mothers_name]);
             if (result) {
                 let defaultProduct = await global_function.GetCountCoreProduct();
                 let errors = 0;
