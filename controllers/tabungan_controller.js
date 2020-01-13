@@ -628,8 +628,8 @@ module.exports = {
             jkw time_period,
             COALESCE((select sum(if(floor(MY_KODE_TRANS/100)=1,pokok,0))-sum(if(floor(MY_KODE_TRANS/100)=2,pokok,0)) 
             from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening and kode_trans not in (101,201)),0) total_paid,
-            DATEDIFF(date(now()),tgl_register)*setoran_per_bln billing_info, 
-            (DATEDIFF(date(now()),tgl_register)*setoran_per_bln)-COALESCE((select sum(if(floor(MY_KODE_TRANS/100)=1,pokok,0))-sum(if(floor(MY_KODE_TRANS/100)=2,pokok,0)) 
+            TIMESTAMPDIFF(date(now()),tgl_register)*setoran_per_bln billing_info, 
+            (TIMESTAMPDIFF(date(now()),tgl_register)*setoran_per_bln)-COALESCE((select sum(if(floor(MY_KODE_TRANS/100)=1,pokok,0))-sum(if(floor(MY_KODE_TRANS/100)=2,pokok,0)) 
             from tabtrans where tgl_trans<=? and no_rekening=t.no_rekening),0) bill_arrear
             from tabung t 
             where kode_jenis=20
