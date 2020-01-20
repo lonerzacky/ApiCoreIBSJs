@@ -1,5 +1,7 @@
 require('dotenv').config();
 require('express-group-routes');
+const https = require('https');
+const fs = require('fs');
 import utility from 'helpers/utility';
 import conn from 'config/connection';
 import morganBody from 'morgan-body';
@@ -71,7 +73,12 @@ app.all("*", function (req, res) {
     return res.send(utility.GiveResponse('01', 'METHOD NOT ALLOWED'));
 });
 
-app.listen(process.env.PORT || 3000, function () {
+https.createServer({
+    key: fs.readFileSync('/etc/letsencrypt/live/el-adabi.citraadhiyanasoft.com/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/el-adabi.citraadhiyanasoft.com/cert.pem'),
+    passphrase: 'Serv3rNida13'
+}, app).listen(process.env.PORT,function () {
     console.log('Server running at http://' + process.env.HOSTNAME + ':' + process.env.PORT + '')
 });
+
 
