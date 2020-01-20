@@ -1,4 +1,3 @@
-const utility = require('../helpers/utility');
 const routes = require('express').Router();
 const tabungan_controller = require('../controllers/tabungan_controller');
 const master_controller = require('../controllers/master_controller');
@@ -7,10 +6,6 @@ const aba_controller = require('../controllers/aba_controller');
 const global_controller = require('../controllers/global_controller');
 const apicode = require('../constants/apicode');
 
-// noinspection JSUnresolvedFunction
-routes.get('/', (req, res) => {
-    return res.send(utility.GiveResponse("00", process.env.APPNAME + " Version " + process.env.VERSION));
-});
 
 // noinspection JSUnresolvedFunction
 routes.post('/' + apicode.apiCodeTransTabungan + '', tabungan_controller.HandlerTransTabungan);

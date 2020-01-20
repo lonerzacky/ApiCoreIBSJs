@@ -47,6 +47,11 @@ app.use(utility.AssignId);
 // noinspection JSUnresolvedFunction
 app.group('/api/' + process.env.PREFIXVER + '', (router) => {
     morganBody(app);
+
+    // noinspection JSUnresolvedFunction
+    router.get('/', (req, res) => {
+        return res.send(utility.GiveResponse("00", process.env.APPNAME + " Version " + process.env.VERSION));
+    });
     // noinspection JSUnresolvedFunction
     router.post('/' + apicode.apiCodeLoginApp + '', global_controller.HandlerLoginApp);
     // noinspection JSUnresolvedFunction
