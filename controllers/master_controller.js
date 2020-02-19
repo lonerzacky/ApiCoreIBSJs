@@ -58,10 +58,11 @@ module.exports = {
         try {
             let tgl_register = moment().format('YYYY-MM-DD');
             let sqlString = `INSERT INTO nasabah (nasabah_id,tgl_register, nama_nasabah, tempatlahir, tgllahir,
-                jenis_kelamin, kode_agama, alamat, kota_kab, telpon,nama_ibu_kandung) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)`;
+                jenis_kelamin, kode_agama, alamat, kota_kab, telpon,nama_ibu_kandung,nasabah_regno) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`;
             let result = await pool_promisify.query(sqlString, [nasabah_id, tgl_register, params.customer_name, params.place_of_birth, params.date_of_birth,
-                params.gender, params.religion, params.address, params.dati_code, params.phone, params.mothers_name]);
+                params.gender, params.religion, params.address, params.dati_code, params.phone, params.mothers_name,
+                params.customer_reg_no]);
             if (result) {
                 let defaultProduct = await global_function.GetCountCoreProduct();
                 let errors = 0;
@@ -112,7 +113,8 @@ module.exports = {
                     let respData = [{
                         'customer_id': nasabah_id,
                         'primary_account_number': norek_tab_program,
-                        'convertion_id': convertion_id
+                        'convertion_id': convertion_id,
+                        'customer_reg_no': params.customer_reg_no
                     }];
                     responseBody = utility.GiveResponse('00', "SUCCESSFULLY REGISTRATION", respData);
                 } else {
