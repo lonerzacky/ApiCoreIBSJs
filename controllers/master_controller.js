@@ -172,24 +172,16 @@ module.exports = {
                         let time_end = moment(row.time_end, 'YYYY-MM-DD HH:mm:ss');
                         let minutes = time_end.diff(time_start, 'minutes', true);
                         let responseArray = "";
-                        if (row.status === 1) {
-                            responseArray = JSON.parse(row.response);
-                        } else {
-                            responseArray = {
-                                type: row.type,
-                                request_id: row.uuid,
-                                date_transaction: moment(row.tgl_trans).format('DD-MM-YYYY'),
-                                hour_transaction: row.jam_trans,
-                                response: JSON.parse(row.response),
-                                status: statusResponse,
-                                minutes_duration: minutes.toFixed(2)
-                            };
-                        }
-                        if (row.status===1){
-                            arrResponse.push(responseArray.response_data[0]);
-                        }else{
-                            arrResponse.push(responseArray);
-                        }
+                        responseArray = {
+                            type: row.type,
+                            request_id: row.uuid,
+                            date_transaction: moment(row.tgl_trans).format('DD-MM-YYYY'),
+                            hour_transaction: row.jam_trans,
+                            response: JSON.parse(row.response),
+                            status: statusResponse,
+                            minutes_duration: minutes.toFixed(2)
+                        };
+                        arrResponse.push(responseArray);
                     }
                     responseBody = utility.GiveResponse("00", "SUCCESSFULLY GET STATUS BATCH CUSTOMER", arrResponse);
                     return res.send(responseBody);
