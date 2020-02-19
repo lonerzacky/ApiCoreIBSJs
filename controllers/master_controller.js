@@ -39,10 +39,6 @@ module.exports = {
             resperrParam += 'MISSING ADDRESS PARAMETER\n';
             errParam++;
         }
-        if (params.dati_code === '' || !params.dati_code) {
-            resperrParam += 'MISSING DATI CODE PARAMETER\n';
-            errParam++;
-        }
         if (params.phone === '' || !params.phone) {
             resperrParam += 'MISSING PHONE PARAMETER\n';
             errParam++;
