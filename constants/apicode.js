@@ -5,6 +5,7 @@ module.exports = Object.freeze({
     apiCodeMutasiTabungan: '101003',
     apiCodeInquiryRekening: '101004',
     apiCodeGetTagihanTabProgram: '101005',
+    apiCodeInquiryRekeningByNasabahId: '101006',
     apiCodeForwardingPayment: '101099',
     apiCodeTransABA: '102001',
     apiCodeGetKuitansi: '201001',
