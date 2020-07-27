@@ -57,6 +57,8 @@ app.group('/api/' + process.env.PREFIXVER + '', (router) => {
     // noinspection JSUnresolvedFunction
     router.post('/' + apicode.apiCodeLoginApp + '', global_controller.HandlerLoginApp);
     // noinspection JSUnresolvedFunction
+    router.post('/' + apicode.apiCodeInquiryRekeningByNasabahId + '', tabungan_controller.HandlerInquiryRekeningByNasabahId);
+    // noinspection JSUnresolvedFunction
     router.post('/' + apicode.apiCodeLoginMobileApp + '', global_controller.HandlerLoginMobileApp);
     // noinspection JSUnresolvedFunction
     router.post('/' + apicode.apiCodeRegistrasiNasabah + '', master_controller.HandlerRegistrasiNasabah);
@@ -72,13 +74,21 @@ app.group('/api/' + process.env.PREFIXVER + '', (router) => {
 app.all("*", function (req, res) {
     return res.send(utility.GiveResponse('01', 'METHOD NOT ALLOWED'));
 });
+if (process.env.FORCESCHEME === 'http') {
+    app.listen(process.env.PORT || 3000, function () {
+        console.log('Server running at http://' + process.env.HOSTNAME + ':' + process.env.PORT + '')
+    });
+} else {
+    https.createServer({
+        key: fs.readFileSync('/etc/letsencrypt/live/el-adabi.citraadhiyanasoft.com/privkey.pem'),
+        cert: fs.readFileSync('/etc/letsencrypt/live/el-adabi.citraadhiyanasoft.com/cert.pem'),
+        passphrase: 'Serv3rNida13'
+    }, app).listen(process.env.PORT, function () {
+        console.log('Server running at http://' + process.env.HOSTNAME + ':' + process.env.PORT + '')
+    });
+}
 
-https.createServer({
-    key: fs.readFileSync('/etc/letsencrypt/live/el-adabi.citraadhiyanasoft.com/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/el-adabi.citraadhiyanasoft.com/cert.pem'),
-    passphrase: 'Serv3rNida13'
-}, app).listen(process.env.PORT,function () {
-    console.log('Server running at http://' + process.env.HOSTNAME + ':' + process.env.PORT + '')
-});
+
+
 
 
