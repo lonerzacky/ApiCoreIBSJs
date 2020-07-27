@@ -654,5 +654,42 @@ module.exports = {
         });
 
 
-    }
+    },
+    HandlerInquiryRekeningByNasabahId: async function (req, res) {
+        let params = req.body;
+        let responseBody = "";
+        if (params.customer_id === '' || !params.customer_id) {
+            return res.send(utility.GiveResponse("01", "CUSTOMER ID MUST BE COMPLETED"));
+        }
+        if (params.client_id === '' || !params.client_id) {
+            return res.send(utility.GiveResponse("01", "CLIENT ID MUST BE COMPLETED"));
+        }
+        let tab_kode_produk_tab_utama = await global_function.GetSysMySysIdValue('TAB_KODE_PRODUK_TABUNGAN_UTAMA');
+        pool.getConnection(function (err, connection) {
+            let sqlString = `SELECT no_rekening,nama_nasabah,saldo_akhir FROM tabung
+            INNER JOIN nasabah ON nasabah.nasabah_id = tabung.nasabah_id WHERE
+            tabung.nasabah_id = ? AND kode_produk = ? LIMIT 1`;
+            connection.query(sqlString,
+                [params.customer_id, tab_kode_produk_tab_utama], function (err, rows) {
+                    if (err) {
+                        console.error(`SELECT DATA ERROR: ${err.message}`);
+                        responseBody = utility.GiveResponse("01", "INQUIRY REKENING TABUNGAN GAGAL");
+                    } else {
+                        let balance = rows[0].saldo_akhir;
+                        if (balance === null) {
+                            balance = 0;
+                        }
+                        let infoInquiry = {
+                            account_number: rows[0].no_rekening,
+                            customer_name: rows[0].nama_nasabah,
+                            balance: balance
+                        };
+                        responseBody = utility.GiveResponse("00", "INQUIRY ACCOUNT SUCCESS", infoInquiry);
+                    }
+                    global_function.InsertLogService(apicode.apiCodeInquiryRekeningByNasabahId, params, responseBody, params.client_id, process.env.APIUSERID);
+                    return res.send(responseBody);
+                });
+            connection.release();
+        });
+    },
 };
