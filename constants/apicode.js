@@ -17,4 +17,5 @@ module.exports = Object.freeze({
     apiCodeRegistrasiNasabah: '301001',
     apiCodeCekStatusBatchNasabah: '301002',
     apiCodeGetKodeDati: '301003',
+    apiCodeDisbursmentOY: '401001'
 });

@@ -1,3 +1,5 @@
+require('dotenv').config();
+const pool_promisify = require('../config/pooling_promisify');
 const moment = require('moment');
 const pool = require('../config/pooling');
 const utility = require('../helpers/utility');
@@ -5,9 +7,12 @@ const global_function = require('../helpers/global_function');
 const tabtrans = require('../setter-getter/tabtrans');
 const crudtabung = require('../crud/crudtabung');
 const apicode = require('../constants/apicode');
+const oycode = require('../constants/oycode');
 const kodetrans = require('../constants/kodetrans');
 const saldo = require('../helpers/saldo');
 const ip = require('ip');
+const axios = require('axios');
+
 
 module.exports = {
     HandlerTransTabungan: async function (req, res) {
@@ -692,4 +697,87 @@ module.exports = {
             connection.release();
         });
     },
+
+    HandlerDisbursmentOY: async function (req, res) {
+        try {
+            let params = req.body;
+            let responseBody = "";
+            let resperrParam = '';
+            let errParam = 0;
+            if (params.txid === '' || !params.txid) {
+                resperrParam += 'MISSING TX ID PARAMETER\n';
+                errParam++;
+            }
+            if (params.oy_txid === '' || !params.oy_txid) {
+                resperrParam += 'MISSING OY TX ID PARAMETER\n';
+                errParam++;
+            }
+            if (params.nominal === '' || !params.nominal) {
+                resperrParam += 'MISSING NOMINAL PARAMETER\n';
+                errParam++;
+            }
+            if (params.name === '' || !params.name) {
+                resperrParam += 'MISSING NAME PARAMETER\n';
+                errParam++;
+            }
+            if (params.phone_number === '' || !params.phone_number) {
+                resperrParam += 'MISSING PHONE NUMBER PARAMETER\n';
+                errParam++;
+            }
+            if (params.note === '' || !params.note) {
+                resperrParam += 'MISSING NOTE PARAMETER\n';
+                errParam++;
+            }
+            if (params.result === '' || !params.result) {
+                resperrParam += 'MISSING RESULT PARAMETER\n';
+                errParam++;
+            }
+            if (errParam > 0) {
+                return res.send(utility.GiveResponse('01', resperrParam));
+            } else {
+                const jsonData = JSON.stringify(
+                    {
+                        recipient_bank: process.env.RECIPIENT_BANK,
+                        recipient_account: process.env.RECIPIENT_ACCOUNT,
+                        amount: params.nominal,
+                        note: params.note,
+                        partner_trx_id: params.oy_txid,
+                        email: process.env.EMAIL
+                    }
+                );
+
+                const result = await axios.post(process.env.URL_OY + 'api/remit', jsonData, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-OY-Username': process.env.OY_USERNAME,
+                        'X-Api-Key': process.env.OY_APIKEY,
+                    }
+                });
+
+                let codeFromOY = result.data.status.code;
+                let messageFromOY = result.data.status.message;
+                if (codeFromOY === oycode.statuscode.codeReqProcessed) {
+                    const leftPad = 4;
+                    const rightPad = 9;
+                    let txid = params.txid;
+                    const convertion_id = txid.substring(leftPad, rightPad);
+                    let sqlString = `INSERT INTO tabtrans_buffer (txid,oy_txid,nominal,name,phone_number,
+                note,result) VALUES (?,?,?,?,?,?,?)`;
+                    let resultBuffer = await pool_promisify.query(sqlString, [convertion_id, params.oy_txid,
+                        params.nominal, params.name, params.phone_number, params.note, params.result]);
+                    if (resultBuffer) {
+                        responseBody = utility.GiveResponse("00", 'SUKSES');
+                    } else {
+                        responseBody = utility.GiveResponse("01", "FAILED TO INSERT BUFFER, TRY AGAIN");
+                    }
+                } else {
+                    responseBody = utility.GiveResponse("01", messageFromOY);
+                }
+                return res.send(responseBody);
+            }
+        } catch (err) {
+            return res.send(utility.GiveResponse('01', "FAILED DISBURSMENT", err.message))
+        }
+
+    }
 };
