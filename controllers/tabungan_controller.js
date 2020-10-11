@@ -766,7 +766,7 @@ module.exports = {
                     let resultBuffer = await pool_promisify.query(sqlString, [convertion_id, params.oy_txid,
                         params.nominal, params.name, params.phone_number, params.note, params.result]);
                     if (resultBuffer) {
-                        responseBody = utility.GiveResponse("00", 'SUKSES');
+                        responseBody = utility.GiveResponse("00", 'SUCCESSFULLY INSERT BUFFER DISBURSMENT');
                     } else {
                         responseBody = utility.GiveResponse("01", "FAILED TO INSERT BUFFER, TRY AGAIN");
                     }
